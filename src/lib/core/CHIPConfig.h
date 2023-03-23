@@ -1377,52 +1377,19 @@ extern const char CHIP_NON_PRODUCTION_MARKER[];
 #endif
 
 /**
- * @brief The minimum number of scenes to support according to spec
- */
-#ifndef CHIP_CONFIG_SCENES_MAX_NUMBER
-#define CHIP_CONFIG_SCENES_MAX_NUMBER 16
-#endif
-
-/**
- * @brief Maximum length of Scene names
- */
-#ifndef CHIP_CONFIG_SCENES_CLUSTER_MAXIMUM_NAME_LENGTH
-#define CHIP_CONFIG_SCENES_CLUSTER_MAXIMUM_NAME_LENGTH 16
-#endif
-
-/**
- * @brief The maximum number of scenes allowed on a single fabric
- */
-#ifndef CHIP_CONFIG_SCENES_MAX_PER_FABRIC
-#define CHIP_CONFIG_SCENES_MAX_PER_FABRIC (CHIP_CONFIG_SCENES_MAX_NUMBER / 2)
-#endif
-
-/**
- * @brief The maximum number of clusters per scene, defaults to 3 for a typical usecase (onOff + level control + color control
- * cluster). Needs to be changed in case a greater number of clusters is chosen.
- */
-#ifndef CHIP_CONFIG_SCENES_MAX_CLUSTERS_PER_SCENE
-#define CHIP_CONFIG_SCENES_MAX_CLUSTERS_PER_SCENE 3
-#endif
-
-/**
- * @brief The maximum size of a single extension field set for a single cluster
- */
-#ifndef CHIP_CONFIG_SCENES_MAX_EXTENSION_FIELDSET_SIZE_PER_CLUSTER
-#define CHIP_CONFIG_SCENES_MAX_EXTENSION_FIELDSET_SIZE_PER_CLUSTER 128
-#endif
-
-/**
- * @def CHIP_CONFIG_MAX_SCENES_CONCURRENT_ITERATORS
+ * @def CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE
  *
- * @brief Defines the number of simultaneous Scenes iterators that can be allocated
- *
- * Number of iterator instances that can be allocated at any one time
+ * Defines the size of the time zone list
  */
-#ifndef CHIP_CONFIG_MAX_SCENES_CONCURRENT_ITERATORS
-#define CHIP_CONFIG_MAX_SCENES_CONCURRENT_ITERATORS 2
+#ifndef CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE
+#define CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE 1
 #endif
 
 /**
- * @}
+ * @def CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE
+ *
+ * Defines the size of the DSTOffset list
  */
+#ifndef CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE
+#define CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE 1
+#endif

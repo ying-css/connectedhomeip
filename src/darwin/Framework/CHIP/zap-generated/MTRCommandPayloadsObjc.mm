@@ -3716,6 +3716,155 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 @end
+@implementation MTRTimeSynchronizationClusterSetTrustedTimeSourceParams
+- (instancetype)init
+{
+    if (self = [super init]) {
+
+        _trustedTimeSource = nil;
+        _timedInvokeTimeoutMs = nil;
+        _serverSideProcessingTimeout = nil;
+    }
+    return self;
+}
+
+- (id)copyWithZone:(NSZone * _Nullable)zone;
+{
+    auto other = [[MTRTimeSynchronizationClusterSetTrustedTimeSourceParams alloc] init];
+
+    other.trustedTimeSource = self.trustedTimeSource;
+    other.timedInvokeTimeoutMs = self.timedInvokeTimeoutMs;
+    other.serverSideProcessingTimeout = self.serverSideProcessingTimeout;
+
+    return other;
+}
+
+- (NSString *)description
+{
+    NSString * descriptionString =
+        [NSString stringWithFormat:@"<%@: trustedTimeSource:%@; >", NSStringFromClass([self class]), _trustedTimeSource];
+    return descriptionString;
+}
+
+@end
+@implementation MTRTimeSynchronizationClusterSetTimeZoneParams
+- (instancetype)init
+{
+    if (self = [super init]) {
+
+        _timeZone = [NSArray array];
+        _timedInvokeTimeoutMs = nil;
+        _serverSideProcessingTimeout = nil;
+    }
+    return self;
+}
+
+- (id)copyWithZone:(NSZone * _Nullable)zone;
+{
+    auto other = [[MTRTimeSynchronizationClusterSetTimeZoneParams alloc] init];
+
+    other.timeZone = self.timeZone;
+    other.timedInvokeTimeoutMs = self.timedInvokeTimeoutMs;
+    other.serverSideProcessingTimeout = self.serverSideProcessingTimeout;
+
+    return other;
+}
+
+- (NSString *)description
+{
+    NSString * descriptionString = [NSString stringWithFormat:@"<%@: timeZone:%@; >", NSStringFromClass([self class]), _timeZone];
+    return descriptionString;
+}
+
+@end
+@implementation MTRTimeSynchronizationClusterSetTimeZoneResponseParams
+- (instancetype)init
+{
+    if (self = [super init]) {
+
+        _dstOffsetRequired = @(0);
+    }
+    return self;
+}
+
+- (id)copyWithZone:(NSZone * _Nullable)zone;
+{
+    auto other = [[MTRTimeSynchronizationClusterSetTimeZoneResponseParams alloc] init];
+
+    other.dstOffsetRequired = self.dstOffsetRequired;
+
+    return other;
+}
+
+- (NSString *)description
+{
+    NSString * descriptionString =
+        [NSString stringWithFormat:@"<%@: dstOffsetRequired:%@; >", NSStringFromClass([self class]), _dstOffsetRequired];
+    return descriptionString;
+}
+
+@end
+@implementation MTRTimeSynchronizationClusterSetDSTOffsetParams
+- (instancetype)init
+{
+    if (self = [super init]) {
+
+        _dstOffset = [NSArray array];
+        _timedInvokeTimeoutMs = nil;
+        _serverSideProcessingTimeout = nil;
+    }
+    return self;
+}
+
+- (id)copyWithZone:(NSZone * _Nullable)zone;
+{
+    auto other = [[MTRTimeSynchronizationClusterSetDSTOffsetParams alloc] init];
+
+    other.dstOffset = self.dstOffset;
+    other.timedInvokeTimeoutMs = self.timedInvokeTimeoutMs;
+    other.serverSideProcessingTimeout = self.serverSideProcessingTimeout;
+
+    return other;
+}
+
+- (NSString *)description
+{
+    NSString * descriptionString = [NSString stringWithFormat:@"<%@: dstOffset:%@; >", NSStringFromClass([self class]), _dstOffset];
+    return descriptionString;
+}
+
+@end
+@implementation MTRTimeSynchronizationClusterSetDefaultNTPParams
+- (instancetype)init
+{
+    if (self = [super init]) {
+
+        _defaultNTP = nil;
+        _timedInvokeTimeoutMs = nil;
+        _serverSideProcessingTimeout = nil;
+    }
+    return self;
+}
+
+- (id)copyWithZone:(NSZone * _Nullable)zone;
+{
+    auto other = [[MTRTimeSynchronizationClusterSetDefaultNTPParams alloc] init];
+
+    other.defaultNTP = self.defaultNTP;
+    other.timedInvokeTimeoutMs = self.timedInvokeTimeoutMs;
+    other.serverSideProcessingTimeout = self.serverSideProcessingTimeout;
+
+    return other;
+}
+
+- (NSString *)description
+{
+    NSString * descriptionString =
+        [NSString stringWithFormat:@"<%@: defaultNTP:%@; >", NSStringFromClass([self class]), _defaultNTP];
+    return descriptionString;
+}
+
+@end
 @implementation MTRAdministratorCommissioningClusterOpenCommissioningWindowParams
 - (instancetype)init
 {

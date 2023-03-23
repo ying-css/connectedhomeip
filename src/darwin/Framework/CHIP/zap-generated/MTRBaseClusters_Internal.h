@@ -157,6 +157,11 @@
 @property (nonatomic, assign, readonly) chip::EndpointId endpoint;
 @end
 
+@interface MTRBaseClusterTimeSynchronization ()
+@property (nonatomic, strong, readonly) MTRBaseDevice * device;
+@property (nonatomic, assign, readonly) chip::EndpointId endpoint;
+@end
+
 @interface MTRBaseClusterBridgedDeviceBasicInformation ()
 @property (nonatomic, strong, readonly) MTRBaseDevice * device;
 @property (nonatomic, assign, readonly) chip::EndpointId endpoint;

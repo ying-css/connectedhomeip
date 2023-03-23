@@ -2033,10 +2033,145 @@ client cluster EthernetNetworkDiagnostics = 55 {
   command ResetCounts(): DefaultSuccess = 0;
 }
 
-/** This Cluster serves two purposes towards a Node communicating with a Bridge: indicate that the functionality on
-          the Endpoint where it is placed (and its Parts) is bridged from a non-CHIP technology; and provide a centralized
-          collection of attributes that the Node MAY collect to aid in conveying information regarding the Bridged Device to a user,
-          such as the vendor name, the model name, or user-assigned name. */
+client cluster TimeSynchronization = 56 {
+  enum GranularityEnum : ENUM8 {
+    kNoTimeGranularity = 0;
+    kMinutesGranularity = 1;
+    kSecondsGranularity = 2;
+    kMillisecondsGranularity = 3;
+    kMicrosecondsGranularity = 4;
+  }
+
+  enum StatusCode : ENUM8 {
+    kTimeNotAccepted = 2;
+  }
+
+  enum TimeSourceEnum : ENUM8 {
+    kNone = 0;
+    kUnknown = 1;
+    kAdmin = 2;
+    kNodeTimeCluster = 3;
+    kNonMatterSNTP = 4;
+    kNonMatterNTP = 5;
+    kMatterSNTP = 6;
+    kMatterNTP = 7;
+    kMixedNTP = 8;
+    kNonMatterSNTPNTS = 9;
+    kNonMatterNTPNTS = 10;
+    kMatterSNTPNTS = 11;
+    kMatterNTPNTS = 12;
+    kMixedNTPNTS = 13;
+    kCloudSource = 14;
+    kPtp = 15;
+    kGnss = 16;
+  }
+
+  enum TimeZoneDatabaseEnum : ENUM8 {
+    kFull = 1;
+    kPartial = 2;
+    kNone = 3;
+  }
+
+  bitmap TimeSynchronizationFeature : BITMAP32 {
+    kTimeZone = 0x1;
+    kNTPClient = 0x2;
+    kNTPServer = 0x4;
+    kTimeSyncClient = 0x8;
+  }
+
+  struct TrustedTimeSourceStruct {
+    fabric_idx fabricIndex = 0;
+    node_id nodeID = 1;
+    endpoint_no endpoint = 2;
+  }
+
+  struct TimeZoneStruct {
+    int32s offset = 0;
+    epoch_us validAt = 1;
+    optional char_string<64> name = 2;
+  }
+
+  struct DSTOffsetStruct {
+    int32s offset = 0;
+    epoch_us validStarting = 1;
+    nullable epoch_us validUntil = 2;
+  }
+
+  struct FabricScopedTrustedTimeSourceStruct {
+    node_id nodeID = 0;
+    endpoint_no endpoint = 1;
+  }
+
+  info event DSTTableEmpty = 0 {
+  }
+
+  info event DSTStatus = 1 {
+    boolean DSTOffsetActive = 0;
+  }
+
+  info event TimeZoneStatus = 2 {
+    INT32S offset = 0;
+    CHAR_STRING name = 1;
+  }
+
+  info event TimeFailure = 3 {
+  }
+
+  info event MissingTrustedTimeSource = 4 {
+  }
+
+  readonly attribute nullable epoch_us UTCTime = 0;
+  readonly attribute GranularityEnum granularity = 1;
+  readonly attribute TimeSourceEnum timeSource = 2;
+  readonly attribute nullable TrustedTimeSourceStruct trustedTimeSource[] = 3;
+  readonly attribute nullable char_string<128> defaultNTP = 4;
+  readonly attribute TimeZoneStruct timeZone[] = 5;
+  readonly attribute DSTOffsetStruct DSTOffset[] = 6;
+  readonly attribute nullable epoch_us localTime = 7;
+  readonly attribute TimeZoneDatabaseEnum timeZoneDatabase = 8;
+  readonly attribute boolean NTPServerAvailable = 9;
+  readonly attribute int8u timeZoneListMaxSize = 10;
+  readonly attribute int8u DSTOffsetListMaxSize = 11;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute event_id eventList[] = 65530;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute bitmap32 featureMap = 65532;
+  readonly attribute int16u clusterRevision = 65533;
+
+  request struct SetUtcTimeRequest {
+    epoch_us utcTime = 0;
+    GranularityEnum granularity = 1;
+    optional TimeSourceEnum timeSource = 2;
+  }
+
+  request struct SetTrustedTimeSourceRequest {
+    nullable FabricScopedTrustedTimeSourceStruct trustedTimeSource = 0;
+  }
+
+  request struct SetTimeZoneRequest {
+    TimeZoneStruct timeZone[] = 0;
+  }
+
+  request struct SetDSTOffsetRequest {
+    DSTOffsetStruct DSTOffset[] = 0;
+  }
+
+  request struct SetDefaultNTPRequest {
+    nullable CHAR_STRING<128> defaultNTP = 0;
+  }
+
+  response struct SetTimeZoneResponse = 3 {
+    boolean DSTOffsetRequired = 0;
+  }
+
+  command access(invoke: administer) SetUtcTime(SetUtcTimeRequest): DefaultSuccess = 0;
+  fabric command access(invoke: administer) SetTrustedTimeSource(SetTrustedTimeSourceRequest): DefaultSuccess = 1;
+  command access(invoke: manage) SetTimeZone(SetTimeZoneRequest): SetTimeZoneResponse = 2;
+  command access(invoke: manage) SetDSTOffset(SetDSTOffsetRequest): DefaultSuccess = 4;
+  command access(invoke: administer) SetDefaultNTP(SetDefaultNTPRequest): DefaultSuccess = 5;
+}
+
 client cluster BridgedDeviceBasicInformation = 57 {
   critical event StartUp = 0 {
     INT32U softwareVersion = 0;
@@ -5404,6 +5539,7 @@ endpoint 1 {
   binding cluster ThreadNetworkDiagnostics;
   binding cluster WiFiNetworkDiagnostics;
   binding cluster EthernetNetworkDiagnostics;
+  binding cluster TimeSynchronization;
   binding cluster BridgedDeviceBasicInformation;
   binding cluster Switch;
   binding cluster AdministratorCommissioning;

@@ -1607,19 +1607,12 @@ EmberAfStatus Get(chip::EndpointId endpoint, chip::app::Clusters::TimeSynchroniz
 EmberAfStatus Set(chip::EndpointId endpoint, chip::app::Clusters::TimeSynchronization::TimeSourceEnum value);
 } // namespace TimeSource
 
-namespace TrustedTimeNodeId {
-EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<chip::NodeId> & value); // node_id
-EmberAfStatus Set(chip::EndpointId endpoint, chip::NodeId value);
-EmberAfStatus SetNull(chip::EndpointId endpoint);
-EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullable<chip::NodeId> & value);
-} // namespace TrustedTimeNodeId
-
-namespace DefaultNtp {
+namespace DefaultNTP {
 EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<chip::MutableCharSpan> & value); // char_string
 EmberAfStatus Set(chip::EndpointId endpoint, chip::CharSpan value);
 EmberAfStatus SetNull(chip::EndpointId endpoint);
 EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullable<chip::CharSpan> & value);
-} // namespace DefaultNtp
+} // namespace DefaultNTP
 
 namespace LocalTime {
 EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<uint64_t> & value); // epoch_us
@@ -1629,16 +1622,30 @@ EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullabl
 } // namespace LocalTime
 
 namespace TimeZoneDatabase {
-EmberAfStatus Get(chip::EndpointId endpoint, bool * value); // boolean
-EmberAfStatus Set(chip::EndpointId endpoint, bool value);
+EmberAfStatus Get(chip::EndpointId endpoint,
+                  chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum * value); // TimeZoneDatabaseEnum
+EmberAfStatus Set(chip::EndpointId endpoint, chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum value);
 } // namespace TimeZoneDatabase
 
-namespace NtpServerPort {
-EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<uint16_t> & value); // int16u
-EmberAfStatus Set(chip::EndpointId endpoint, uint16_t value);
-EmberAfStatus SetNull(chip::EndpointId endpoint);
-EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullable<uint16_t> & value);
-} // namespace NtpServerPort
+namespace NTPServerAvailable {
+EmberAfStatus Get(chip::EndpointId endpoint, bool * value); // boolean
+EmberAfStatus Set(chip::EndpointId endpoint, bool value);
+} // namespace NTPServerAvailable
+
+namespace TimeZoneListMaxSize {
+EmberAfStatus Get(chip::EndpointId endpoint, uint8_t * value); // int8u
+EmberAfStatus Set(chip::EndpointId endpoint, uint8_t value);
+} // namespace TimeZoneListMaxSize
+
+namespace DSTOffsetListMaxSize {
+EmberAfStatus Get(chip::EndpointId endpoint, uint8_t * value); // int8u
+EmberAfStatus Set(chip::EndpointId endpoint, uint8_t value);
+} // namespace DSTOffsetListMaxSize
+
+namespace SupportsDNSResolve {
+EmberAfStatus Get(chip::EndpointId endpoint, bool * value); // boolean
+EmberAfStatus Set(chip::EndpointId endpoint, bool value);
+} // namespace SupportsDNSResolve
 
 namespace FeatureMap {
 EmberAfStatus Get(chip::EndpointId endpoint, uint32_t * value); // bitmap32

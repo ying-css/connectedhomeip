@@ -1201,6 +1201,95 @@ id MTRDecodeEventPayload(const ConcreteEventPath & aPath, TLV::TLVReader & aRead
         }
         break;
     }
+    case Clusters::TimeSynchronization::Id: {
+        using namespace Clusters::TimeSynchronization;
+        switch (aPath.mEventId) {
+
+        case Events::DSTTableEmpty::Id: {
+            Events::DSTTableEmpty::DecodableType cppValue;
+            *aError = DataModel::Decode(aReader, cppValue);
+            if (*aError != CHIP_NO_ERROR) {
+                return nil;
+            }
+
+            __auto_type * value = [MTRTimeSynchronizationClusterDSTTableEmptyEvent new];
+
+            return value;
+        }
+
+        case Events::DSTStatus::Id: {
+            Events::DSTStatus::DecodableType cppValue;
+            *aError = DataModel::Decode(aReader, cppValue);
+            if (*aError != CHIP_NO_ERROR) {
+                return nil;
+            }
+
+            __auto_type * value = [MTRTimeSynchronizationClusterDSTStatusEvent new];
+
+            do {
+                NSNumber * _Nonnull memberValue;
+                memberValue = [NSNumber numberWithBool:cppValue.DSTOffsetActive];
+                value.dstOffsetActive = memberValue;
+            } while (0);
+
+            return value;
+        }
+
+        case Events::TimeZoneStatus::Id: {
+            Events::TimeZoneStatus::DecodableType cppValue;
+            *aError = DataModel::Decode(aReader, cppValue);
+            if (*aError != CHIP_NO_ERROR) {
+                return nil;
+            }
+
+            __auto_type * value = [MTRTimeSynchronizationClusterTimeZoneStatusEvent new];
+
+            do {
+                NSNumber * _Nonnull memberValue;
+                memberValue = [NSNumber numberWithInt:cppValue.offset];
+                value.offset = memberValue;
+            } while (0);
+            do {
+                NSString * _Nonnull memberValue;
+                memberValue = [[NSString alloc] initWithBytes:cppValue.name.data()
+                                                       length:cppValue.name.size()
+                                                     encoding:NSUTF8StringEncoding];
+                value.name = memberValue;
+            } while (0);
+
+            return value;
+        }
+
+        case Events::TimeFailure::Id: {
+            Events::TimeFailure::DecodableType cppValue;
+            *aError = DataModel::Decode(aReader, cppValue);
+            if (*aError != CHIP_NO_ERROR) {
+                return nil;
+            }
+
+            __auto_type * value = [MTRTimeSynchronizationClusterTimeFailureEvent new];
+
+            return value;
+        }
+
+        case Events::MissingTrustedTimeSource::Id: {
+            Events::MissingTrustedTimeSource::DecodableType cppValue;
+            *aError = DataModel::Decode(aReader, cppValue);
+            if (*aError != CHIP_NO_ERROR) {
+                return nil;
+            }
+
+            __auto_type * value = [MTRTimeSynchronizationClusterMissingTrustedTimeSourceEvent new];
+
+            return value;
+        }
+
+        default:
+            *aError = CHIP_ERROR_IM_MALFORMED_EVENT_PATH_IB;
+            break;
+        }
+        break;
+    }
     case Clusters::BridgedDeviceBasicInformation::Id: {
         using namespace Clusters::BridgedDeviceBasicInformation;
         switch (aPath.mEventId) {

@@ -9222,60 +9222,7 @@ EmberAfStatus Set(chip::EndpointId endpoint, chip::app::Clusters::TimeSynchroniz
 
 } // namespace TimeSource
 
-namespace TrustedTimeNodeId {
-
-EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<chip::NodeId> & value)
-{
-    using Traits = NumericAttributeTraits<chip::NodeId>;
-    Traits::StorageType temp;
-    uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
-    EmberAfStatus status = emberAfReadAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, readable, sizeof(temp));
-    VerifyOrReturnError(EMBER_ZCL_STATUS_SUCCESS == status, status);
-    if (Traits::IsNullValue(temp))
-    {
-        value.SetNull();
-    }
-    else
-    {
-        value.SetNonNull() = Traits::StorageToWorking(temp);
-    }
-    return status;
-}
-EmberAfStatus Set(chip::EndpointId endpoint, chip::NodeId value)
-{
-    using Traits = NumericAttributeTraits<chip::NodeId>;
-    if (!Traits::CanRepresentValue(/* isNullable = */ true, value))
-    {
-        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
-    }
-    Traits::StorageType storageValue;
-    Traits::WorkingToStorage(value, storageValue);
-    uint8_t * writable = Traits::ToAttributeStoreRepresentation(storageValue);
-    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_NODE_ID_ATTRIBUTE_TYPE);
-}
-
-EmberAfStatus SetNull(chip::EndpointId endpoint)
-{
-    using Traits = NumericAttributeTraits<chip::NodeId>;
-    Traits::StorageType value;
-    Traits::SetNull(value);
-    uint8_t * writable = Traits::ToAttributeStoreRepresentation(value);
-    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_NODE_ID_ATTRIBUTE_TYPE);
-}
-
-EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullable<chip::NodeId> & value)
-{
-    if (value.IsNull())
-    {
-        return SetNull(endpoint);
-    }
-
-    return Set(endpoint, value.Value());
-}
-
-} // namespace TrustedTimeNodeId
-
-namespace DefaultNtp {
+namespace DefaultNTP {
 
 EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<chip::MutableCharSpan> & value)
 {
@@ -9321,7 +9268,7 @@ EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullabl
     return Set(endpoint, value.Value());
 }
 
-} // namespace DefaultNtp
+} // namespace DefaultNTP
 
 namespace LocalTime {
 
@@ -9378,6 +9325,37 @@ EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullabl
 
 namespace TimeZoneDatabase {
 
+EmberAfStatus Get(chip::EndpointId endpoint, chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum * value)
+{
+    using Traits = NumericAttributeTraits<chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum>;
+    Traits::StorageType temp;
+    uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+    EmberAfStatus status = emberAfReadAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, readable, sizeof(temp));
+    VerifyOrReturnError(EMBER_ZCL_STATUS_SUCCESS == status, status);
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, temp))
+    {
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
+    }
+    *value = Traits::StorageToWorking(temp);
+    return status;
+}
+EmberAfStatus Set(chip::EndpointId endpoint, chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum value)
+{
+    using Traits = NumericAttributeTraits<chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum>;
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, value))
+    {
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
+    }
+    Traits::StorageType storageValue;
+    Traits::WorkingToStorage(value, storageValue);
+    uint8_t * writable = Traits::ToAttributeStoreRepresentation(storageValue);
+    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_ENUM8_ATTRIBUTE_TYPE);
+}
+
+} // namespace TimeZoneDatabase
+
+namespace NTPServerAvailable {
+
 EmberAfStatus Get(chip::EndpointId endpoint, bool * value)
 {
     using Traits = NumericAttributeTraits<bool>;
@@ -9405,60 +9383,100 @@ EmberAfStatus Set(chip::EndpointId endpoint, bool value)
     return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_BOOLEAN_ATTRIBUTE_TYPE);
 }
 
-} // namespace TimeZoneDatabase
+} // namespace NTPServerAvailable
 
-namespace NtpServerPort {
+namespace TimeZoneListMaxSize {
 
-EmberAfStatus Get(chip::EndpointId endpoint, DataModel::Nullable<uint16_t> & value)
+EmberAfStatus Get(chip::EndpointId endpoint, uint8_t * value)
 {
-    using Traits = NumericAttributeTraits<uint16_t>;
+    using Traits = NumericAttributeTraits<uint8_t>;
     Traits::StorageType temp;
     uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
     EmberAfStatus status = emberAfReadAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, readable, sizeof(temp));
     VerifyOrReturnError(EMBER_ZCL_STATUS_SUCCESS == status, status);
-    if (Traits::IsNullValue(temp))
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, temp))
     {
-        value.SetNull();
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
     }
-    else
-    {
-        value.SetNonNull() = Traits::StorageToWorking(temp);
-    }
+    *value = Traits::StorageToWorking(temp);
     return status;
 }
-EmberAfStatus Set(chip::EndpointId endpoint, uint16_t value)
+EmberAfStatus Set(chip::EndpointId endpoint, uint8_t value)
 {
-    using Traits = NumericAttributeTraits<uint16_t>;
-    if (!Traits::CanRepresentValue(/* isNullable = */ true, value))
+    using Traits = NumericAttributeTraits<uint8_t>;
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, value))
     {
         return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
     }
     Traits::StorageType storageValue;
     Traits::WorkingToStorage(value, storageValue);
     uint8_t * writable = Traits::ToAttributeStoreRepresentation(storageValue);
-    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_INT16U_ATTRIBUTE_TYPE);
+    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_INT8U_ATTRIBUTE_TYPE);
 }
 
-EmberAfStatus SetNull(chip::EndpointId endpoint)
-{
-    using Traits = NumericAttributeTraits<uint16_t>;
-    Traits::StorageType value;
-    Traits::SetNull(value);
-    uint8_t * writable = Traits::ToAttributeStoreRepresentation(value);
-    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_INT16U_ATTRIBUTE_TYPE);
-}
+} // namespace TimeZoneListMaxSize
 
-EmberAfStatus Set(chip::EndpointId endpoint, const chip::app::DataModel::Nullable<uint16_t> & value)
+namespace DSTOffsetListMaxSize {
+
+EmberAfStatus Get(chip::EndpointId endpoint, uint8_t * value)
 {
-    if (value.IsNull())
+    using Traits = NumericAttributeTraits<uint8_t>;
+    Traits::StorageType temp;
+    uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+    EmberAfStatus status = emberAfReadAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, readable, sizeof(temp));
+    VerifyOrReturnError(EMBER_ZCL_STATUS_SUCCESS == status, status);
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, temp))
     {
-        return SetNull(endpoint);
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
     }
-
-    return Set(endpoint, value.Value());
+    *value = Traits::StorageToWorking(temp);
+    return status;
+}
+EmberAfStatus Set(chip::EndpointId endpoint, uint8_t value)
+{
+    using Traits = NumericAttributeTraits<uint8_t>;
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, value))
+    {
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
+    }
+    Traits::StorageType storageValue;
+    Traits::WorkingToStorage(value, storageValue);
+    uint8_t * writable = Traits::ToAttributeStoreRepresentation(storageValue);
+    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_INT8U_ATTRIBUTE_TYPE);
 }
 
-} // namespace NtpServerPort
+} // namespace DSTOffsetListMaxSize
+
+namespace SupportsDNSResolve {
+
+EmberAfStatus Get(chip::EndpointId endpoint, bool * value)
+{
+    using Traits = NumericAttributeTraits<bool>;
+    Traits::StorageType temp;
+    uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+    EmberAfStatus status = emberAfReadAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, readable, sizeof(temp));
+    VerifyOrReturnError(EMBER_ZCL_STATUS_SUCCESS == status, status);
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, temp))
+    {
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
+    }
+    *value = Traits::StorageToWorking(temp);
+    return status;
+}
+EmberAfStatus Set(chip::EndpointId endpoint, bool value)
+{
+    using Traits = NumericAttributeTraits<bool>;
+    if (!Traits::CanRepresentValue(/* isNullable = */ false, value))
+    {
+        return EMBER_ZCL_STATUS_CONSTRAINT_ERROR;
+    }
+    Traits::StorageType storageValue;
+    Traits::WorkingToStorage(value, storageValue);
+    uint8_t * writable = Traits::ToAttributeStoreRepresentation(storageValue);
+    return emberAfWriteAttribute(endpoint, Clusters::TimeSynchronization::Id, Id, writable, ZCL_BOOLEAN_ATTRIBUTE_TYPE);
+}
+
+} // namespace SupportsDNSResolve
 
 namespace FeatureMap {
 

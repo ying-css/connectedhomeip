@@ -269,6 +269,12 @@
             "PacketUnicastTxCount",
             "CurrentMaxRate",
             "OverrunCount"
+        ],
+        "Time Synchronization": [
+            "TrustedTimeSource",
+            "DefaultNTP",
+            "TimeZone",
+            "DSTOffset"
         ]
     },
     "defaultReportingPolicy": "mandatory",

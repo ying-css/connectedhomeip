@@ -2173,6 +2173,81 @@ API_AVAILABLE(ios(16.1), macos(13.0), watchos(9.1), tvos(16.1))
 @end
 
 /**
+ * Cluster Time Synchronization
+ *    Accurate time is required for a number of reasons, including scheduling, display and validating security materials.
+ */
+MTR_NEWLY_AVAILABLE
+@interface MTRClusterTimeSynchronization : MTRCluster
+
+- (instancetype _Nullable)initWithDevice:(MTRDevice *)device
+                              endpointID:(NSNumber *)endpointID
+                                   queue:(dispatch_queue_t)queue NS_DESIGNATED_INITIALIZER MTR_NEWLY_AVAILABLE;
+
+- (void)setUtcTimeWithParams:(MTRTimeSynchronizationClusterSetUtcTimeParams *)params
+              expectedValues:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)expectedDataValueDictionaries
+       expectedValueInterval:(NSNumber * _Nullable)expectedValueIntervalMs
+                  completion:(MTRStatusCompletion)completion MTR_NEWLY_AVAILABLE;
+- (void)setTrustedTimeSourceWithParams:(MTRTimeSynchronizationClusterSetTrustedTimeSourceParams *)params
+                        expectedValues:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)expectedDataValueDictionaries
+                 expectedValueInterval:(NSNumber * _Nullable)expectedValueIntervalMs
+                            completion:(MTRStatusCompletion)completion MTR_NEWLY_AVAILABLE;
+- (void)setTimeZoneWithParams:(MTRTimeSynchronizationClusterSetTimeZoneParams *)params
+               expectedValues:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)expectedDataValueDictionaries
+        expectedValueInterval:(NSNumber * _Nullable)expectedValueIntervalMs
+                   completion:(void (^)(MTRTimeSynchronizationClusterSetTimeZoneResponseParams * _Nullable data,
+                                  NSError * _Nullable error))completion MTR_NEWLY_AVAILABLE;
+- (void)setDSTOffsetWithParams:(MTRTimeSynchronizationClusterSetDSTOffsetParams *)params
+                expectedValues:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)expectedDataValueDictionaries
+         expectedValueInterval:(NSNumber * _Nullable)expectedValueIntervalMs
+                    completion:(MTRStatusCompletion)completion MTR_NEWLY_AVAILABLE;
+- (void)setDefaultNTPWithParams:(MTRTimeSynchronizationClusterSetDefaultNTPParams *)params
+                 expectedValues:(NSArray<NSDictionary<NSString *, id> *> * _Nullable)expectedDataValueDictionaries
+          expectedValueInterval:(NSNumber * _Nullable)expectedValueIntervalMs
+                     completion:(MTRStatusCompletion)completion MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeUTCTimeWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeGranularityWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeTimeSourceWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeTrustedTimeSourceWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeDefaultNTPWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeTimeZoneWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeDSTOffsetWithParams:(MTRReadParams * _Nullable)params
+    API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5));
+
+- (NSDictionary<NSString *, id> *)readAttributeLocalTimeWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeTimeZoneDatabaseWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeNTPServerAvailableWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeTimeZoneListMaxSizeWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeDSTOffsetListMaxSizeWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeSupportsDNSResolveWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeGeneratedCommandListWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeAcceptedCommandListWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeAttributeListWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeFeatureMapWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (NSDictionary<NSString *, id> *)readAttributeClusterRevisionWithParams:(MTRReadParams * _Nullable)params MTR_NEWLY_AVAILABLE;
+
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)new NS_UNAVAILABLE;
+
+@end
+
+/**
  * Cluster Bridged Device Basic Information
  *    This Cluster serves two purposes towards a Node communicating with a Bridge: indicate that the functionality on
           the Endpoint where it is placed (and its Parts) is bridged from a non-CHIP technology; and provide a centralized

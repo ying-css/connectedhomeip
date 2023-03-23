@@ -198,12 +198,11 @@ public:
     }
     static StorageKeyName SubscriptionResumptionMaxCount() { return StorageKeyName::Formatted("g/sum"); }
 
-    static StorageKeyName GlobalSceneCountKey() { return StorageKeyName::Formatted("g/scc"); }
-    static StorageKeyName FabricSceneDataKey(chip::FabricIndex fabric) { return StorageKeyName::Formatted("f/%x/sc", fabric); }
-    static StorageKeyName FabricSceneKey(chip::FabricIndex fabric, uint8_t id)
-    {
-        return StorageKeyName::Formatted("f/%x/sc/%x", fabric, id);
-    }
+    // Time synchronization cluster
+    static StorageKeyName TSTrustedTimeSource() { return StorageKeyName::FromConst("g/ts/tts"); }
+    static StorageKeyName TSDefaultNTP() { return StorageKeyName::FromConst("g/ts/dntp"); }
+    static StorageKeyName TSTimeZone() { return StorageKeyName::FromConst("g/ts/tz"); }
+    static StorageKeyName TSDSTOffset() { return StorageKeyName::FromConst("g/ts/dsto"); }
 };
 
 } // namespace chip

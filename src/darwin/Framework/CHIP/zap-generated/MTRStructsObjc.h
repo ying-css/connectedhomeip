@@ -477,13 +477,19 @@ API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5))
 @interface MTRTimeSynchronizationClusterDSTOffsetStruct : NSObject <NSCopying>
 @property (nonatomic, copy) NSNumber * _Nonnull offset API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5));
 @property (nonatomic, copy) NSNumber * _Nonnull validStarting API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5));
-@property (nonatomic, copy) NSNumber * _Nonnull validUntil API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5));
+@property (nonatomic, copy) NSNumber * _Nullable validUntil API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5));
 @end
 
 MTR_DEPRECATED("Please use MTRTimeSynchronizationClusterDSTOffsetStruct", ios(16.1, 16.5), macos(13.0, 13.4), watchos(9.1, 9.5),
     tvos(16.1, 16.5))
 @interface MTRTimeSynchronizationClusterDstOffsetType : MTRTimeSynchronizationClusterDSTOffsetStruct
 @end
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterFabricScopedTrustedTimeSourceStruct : NSObject <NSCopying>
+@property (nonatomic, copy) NSNumber * _Nonnull nodeID MTR_NEWLY_AVAILABLE;
+@property (nonatomic, copy) NSNumber * _Nonnull endpoint MTR_NEWLY_AVAILABLE;
+@end
+
 API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5))
 @interface MTRTimeSynchronizationClusterTimeZoneStruct : NSObject <NSCopying>
 @property (nonatomic, copy) NSNumber * _Nonnull offset API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5));
@@ -494,6 +500,35 @@ API_AVAILABLE(ios(16.5), macos(13.4), watchos(9.5), tvos(16.5))
 MTR_DEPRECATED("Please use MTRTimeSynchronizationClusterTimeZoneStruct", ios(16.1, 16.5), macos(13.0, 13.4), watchos(9.1, 9.5),
     tvos(16.1, 16.5))
 @interface MTRTimeSynchronizationClusterTimeZoneType : MTRTimeSynchronizationClusterTimeZoneStruct
+@end
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterTrustedTimeSourceStruct : NSObject <NSCopying>
+@property (nonatomic, copy) NSNumber * _Nonnull fabricIndex MTR_NEWLY_AVAILABLE;
+@property (nonatomic, copy) NSNumber * _Nonnull nodeID MTR_NEWLY_AVAILABLE;
+@property (nonatomic, copy) NSNumber * _Nonnull endpoint MTR_NEWLY_AVAILABLE;
+@end
+
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterDSTTableEmptyEvent : NSObject <NSCopying>
+@end
+
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterDSTStatusEvent : NSObject <NSCopying>
+@property (nonatomic, copy) NSNumber * _Nonnull dstOffsetActive MTR_NEWLY_AVAILABLE;
+@end
+
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterTimeZoneStatusEvent : NSObject <NSCopying>
+@property (nonatomic, copy) NSNumber * _Nonnull offset MTR_NEWLY_AVAILABLE;
+@property (nonatomic, copy) NSString * _Nonnull name MTR_NEWLY_AVAILABLE;
+@end
+
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterTimeFailureEvent : NSObject <NSCopying>
+@end
+
+MTR_NEWLY_AVAILABLE
+@interface MTRTimeSynchronizationClusterMissingTrustedTimeSourceEvent : NSObject <NSCopying>
 @end
 
 API_AVAILABLE(ios(16.4), macos(13.3), watchos(9.4), tvos(16.4))
