@@ -10479,6 +10479,15 @@ public class ChipClusters {
       subscribeDSTOffsetListMaxSizeAttribute(chipClusterPtr, callback, minInterval, maxInterval);
     }
 
+    public void readSupportsDNSResolveAttribute(BooleanAttributeCallback callback) {
+      readSupportsDNSResolveAttribute(chipClusterPtr, callback);
+    }
+
+    public void subscribeSupportsDNSResolveAttribute(
+        BooleanAttributeCallback callback, int minInterval, int maxInterval) {
+      subscribeSupportsDNSResolveAttribute(chipClusterPtr, callback, minInterval, maxInterval);
+    }
+
     public void readGeneratedCommandListAttribute(GeneratedCommandListAttributeCallback callback) {
       readGeneratedCommandListAttribute(chipClusterPtr, callback);
     }
@@ -10610,6 +10619,12 @@ public class ChipClusters {
 
     private native void subscribeDSTOffsetListMaxSizeAttribute(
         long chipClusterPtr, IntegerAttributeCallback callback, int minInterval, int maxInterval);
+
+    private native void readSupportsDNSResolveAttribute(
+        long chipClusterPtr, BooleanAttributeCallback callback);
+
+    private native void subscribeSupportsDNSResolveAttribute(
+        long chipClusterPtr, BooleanAttributeCallback callback, int minInterval, int maxInterval);
 
     private native void readGeneratedCommandListAttribute(
         long chipClusterPtr, GeneratedCommandListAttributeCallback callback);

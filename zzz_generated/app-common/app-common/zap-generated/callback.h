@@ -6543,11 +6543,6 @@ bool emberAfTimeSynchronizationClusterSetTimeZoneCallback(
     chip::app::CommandHandler * commandObj, const chip::app::ConcreteCommandPath & commandPath,
     const chip::app::Clusters::TimeSynchronization::Commands::SetTimeZone::DecodableType & commandData);
 /**
- * @brief Time Synchronization Cluster SetTimeZoneResponse Command callback (from server)
- */
-bool emberAfTimeSynchronizationClusterSetTimeZoneResponseCallback(chip::EndpointId endpoint, chip::app::CommandSender * commandObj,
-                                                                  bool DSTOffsetRequired);
-/**
  * @brief Time Synchronization Cluster SetDSTOffset Command callback (from client)
  */
 bool emberAfTimeSynchronizationClusterSetDSTOffsetCallback(

@@ -1513,6 +1513,9 @@ public final class ChipIdLookup {
       if (attributeId == 11L) {
         return "DSTOffsetListMaxSize";
       }
+      if (attributeId == 12L) {
+        return "SupportsDNSResolve";
+      }
       if (attributeId == 65528L) {
         return "GeneratedCommandList";
       }

@@ -8731,7 +8731,7 @@ jobject DecodeAttributeValue(const app::ConcreteAttributePath & aPath, TLV::TLVR
             }
             else
             {
-                value = env->NewStringUTF(std::string(cppValue.Value().data(), cppValue.Value().size()).c_str());
+                LogErrorOnFailure(chip::JniReferences::GetInstance().CharToStringUTF(cppValue.Value(), value));
             }
             return value;
         }
@@ -8771,8 +8771,8 @@ jobject DecodeAttributeValue(const app::ConcreteAttributePath & aPath, TLV::TLVR
                 else
                 {
                     jobject newElement_0_nameInsideOptional;
-                    newElement_0_nameInsideOptional =
-                        env->NewStringUTF(std::string(entry_0.name.Value().data(), entry_0.name.Value().size()).c_str());
+                    LogErrorOnFailure(
+                        chip::JniReferences::GetInstance().CharToStringUTF(entry_0.name.Value(), newElement_0_nameInsideOptional));
                     chip::JniReferences::GetInstance().CreateOptional(newElement_0_nameInsideOptional, newElement_0_name);
                 }
 
@@ -8943,6 +8943,21 @@ jobject DecodeAttributeValue(const app::ConcreteAttributePath & aPath, TLV::TLVR
             std::string valueCtorSignature = "(I)V";
             chip::JniReferences::GetInstance().CreateBoxedObject<uint8_t>(valueClassName.c_str(), valueCtorSignature.c_str(),
                                                                           cppValue, value);
+            return value;
+        }
+        case Attributes::SupportsDNSResolve::Id: {
+            using TypeInfo = Attributes::SupportsDNSResolve::TypeInfo;
+            TypeInfo::DecodableType cppValue;
+            *aError = app::DataModel::Decode(aReader, cppValue);
+            if (*aError != CHIP_NO_ERROR)
+            {
+                return nullptr;
+            }
+            jobject value;
+            std::string valueClassName     = "java/lang/Boolean";
+            std::string valueCtorSignature = "(Z)V";
+            chip::JniReferences::GetInstance().CreateBoxedObject<bool>(valueClassName.c_str(), valueCtorSignature.c_str(), cppValue,
+                                                                       value);
             return value;
         }
         case Attributes::GeneratedCommandList::Id: {

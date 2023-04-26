@@ -1785,7 +1785,7 @@ jobject DecodeEventValue(const app::ConcreteEventPath & aPath, TLV::TLVReader & 
                 value_offsetClassName.c_str(), value_offsetCtorSignature.c_str(), cppValue.offset, value_offset);
 
             jobject value_name;
-            value_name = env->NewStringUTF(std::string(cppValue.name.data(), cppValue.name.size()).c_str());
+            LogErrorOnFailure(chip::JniReferences::GetInstance().CharToStringUTF(cppValue.name, value_name));
 
             jclass timeZoneStatusStructClass;
             err = chip::JniReferences::GetInstance().GetClassRef(

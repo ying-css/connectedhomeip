@@ -5784,6 +5784,20 @@ public class ClusterReadMapping {
     readTimeSynchronizationInteractionInfo.put(
         "readDSTOffsetListMaxSizeAttribute",
         readTimeSynchronizationDSTOffsetListMaxSizeAttributeInteractionInfo);
+    Map<String, CommandParameterInfo> readTimeSynchronizationSupportsDNSResolveCommandParams =
+        new LinkedHashMap<String, CommandParameterInfo>();
+    InteractionInfo readTimeSynchronizationSupportsDNSResolveAttributeInteractionInfo =
+        new InteractionInfo(
+            (cluster, callback, commandArguments) -> {
+              ((ChipClusters.TimeSynchronizationCluster) cluster)
+                  .readSupportsDNSResolveAttribute(
+                      (ChipClusters.BooleanAttributeCallback) callback);
+            },
+            () -> new ClusterInfoMapping.DelegatedBooleanAttributeCallback(),
+            readTimeSynchronizationSupportsDNSResolveCommandParams);
+    readTimeSynchronizationInteractionInfo.put(
+        "readSupportsDNSResolveAttribute",
+        readTimeSynchronizationSupportsDNSResolveAttributeInteractionInfo);
     Map<String, CommandParameterInfo> readTimeSynchronizationGeneratedCommandListCommandParams =
         new LinkedHashMap<String, CommandParameterInfo>();
     InteractionInfo readTimeSynchronizationGeneratedCommandListAttributeInteractionInfo =

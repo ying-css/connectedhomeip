@@ -9763,9 +9763,6 @@ typedef NS_ENUM(uint32_t, MTREventIDType) {
         ios(16.4), macos(13.3), watchos(9.4), tvos(16.4))
     = 0x00000002,
 
-    // Cluster TimeSynchronization deprecated event names
-
-    // Cluster TimeSynchronization events
     MTREventIDTypeClusterTimeSynchronizationEventDSTTableEmptyID MTR_NEWLY_AVAILABLE = 0x00000000,
     MTREventIDTypeClusterTimeSynchronizationEventDSTStatusID MTR_NEWLY_AVAILABLE = 0x00000001,
     MTREventIDTypeClusterTimeSynchronizationEventTimeZoneStatusID MTR_NEWLY_AVAILABLE = 0x00000002,

@@ -1870,6 +1870,7 @@ server cluster EthernetNetworkDiagnostics = 55 {
   command ResetCounts(): DefaultSuccess = 0;
 }
 
+/** Accurate time is required for a number of reasons, including scheduling, display and validating security materials. */
 server cluster TimeSynchronization = 56 {
   enum GranularityEnum : ENUM8 {
     kNoTimeGranularity = 0;
@@ -1916,18 +1917,6 @@ server cluster TimeSynchronization = 56 {
     kTimeSyncClient = 0x8;
   }
 
-  struct TrustedTimeSourceStruct {
-    fabric_idx fabricIndex = 0;
-    node_id nodeID = 1;
-    endpoint_no endpoint = 2;
-  }
-
-  struct TimeZoneStruct {
-    int32s offset = 0;
-    epoch_us validAt = 1;
-    optional char_string<64> name = 2;
-  }
-
   struct DSTOffsetStruct {
     int32s offset = 0;
     epoch_us validStarting = 1;
@@ -1937,6 +1926,18 @@ server cluster TimeSynchronization = 56 {
   struct FabricScopedTrustedTimeSourceStruct {
     node_id nodeID = 0;
     endpoint_no endpoint = 1;
+  }
+
+  struct TimeZoneStruct {
+    int32s offset = 0;
+    epoch_us validAt = 1;
+    optional char_string<64> name = 2;
+  }
+
+  struct TrustedTimeSourceStruct {
+    fabric_idx fabricIndex = 0;
+    node_id nodeID = 1;
+    endpoint_no endpoint = 2;
   }
 
   info event DSTTableEmpty = 0 {
@@ -2008,6 +2009,9 @@ server cluster TimeSynchronization = 56 {
   command access(invoke: administer) SetDefaultNTP(SetDefaultNTPRequest): DefaultSuccess = 5;
 }
 
+/** This cluster exposes interactions with a switch device, for the purpose of using those interactions by other devices.
+Two types of switch devices are supported: latching switch (e.g. rocker switch) and momentary switch (e.g. push button), distinguished with their feature flags.
+Interactions with the switch device are exposed as attributes (for the latching switch) and as events (for both types of switches). An interested party MAY subscribe to these attributes/events and thus be informed of the interactions, and can perform actions based on this, for example by sending commands to perform an action such as controlling a light or a window shade. */
 server cluster Switch = 59 {
   bitmap SwitchFeature : BITMAP32 {
     kLatchingSwitch = 0x1;
@@ -5005,14 +5009,14 @@ endpoint 0 {
     emits event TimeFailure;
     emits event MissingTrustedTimeSource;
     ram      attribute UTCTime;
-    ram      attribute granularity;
-    ram      attribute timeSource;
+    ram      attribute granularity default = 0x00;
+    ram      attribute timeSource default = 0x00;
     callback attribute trustedTimeSource;
     callback attribute defaultNTP;
     callback attribute timeZone default = 1;
     callback attribute DSTOffset;
     ram      attribute localTime default = 1;
-    ram      attribute timeZoneDatabase;
+    ram      attribute timeZoneDatabase default = 0;
     ram      attribute timeZoneListMaxSize default = 3;
     ram      attribute DSTOffsetListMaxSize;
     callback attribute generatedCommandList;

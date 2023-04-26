@@ -73,8 +73,6 @@ typedef void (*NetworkCommissioningClusterConnectNetworkResponseCallbackType)(
     void *, const chip::app::Clusters::NetworkCommissioning::Commands::ConnectNetworkResponse::DecodableType &);
 typedef void (*DiagnosticLogsClusterRetrieveLogsResponseCallbackType)(
     void *, const chip::app::Clusters::DiagnosticLogs::Commands::RetrieveLogsResponse::DecodableType &);
-typedef void (*TimeSynchronizationClusterSetTimeZoneResponseCallbackType)(
-    void *, const chip::app::Clusters::TimeSynchronization::Commands::SetTimeZoneResponse::DecodableType &);
 typedef void (*OperationalCredentialsClusterAttestationResponseCallbackType)(
     void *, const chip::app::Clusters::OperationalCredentials::Commands::AttestationResponse::DecodableType &);
 typedef void (*OperationalCredentialsClusterCertificateChainResponseCallbackType)(
@@ -344,17 +342,10 @@ typedef void (*TimeSynchronizationClusterGranularityEnumAttributeCallback)(
     void *, chip::app::Clusters::TimeSynchronization::GranularityEnum);
 typedef void (*NullableTimeSynchronizationClusterGranularityEnumAttributeCallback)(
     void *, const chip::app::DataModel::Nullable<chip::app::Clusters::TimeSynchronization::GranularityEnum> &);
-typedef void (*TimeSynchronizationClusterStatusCodeAttributeCallback)(void *, chip::app::Clusters::TimeSynchronization::StatusCode);
-typedef void (*NullableTimeSynchronizationClusterStatusCodeAttributeCallback)(
-    void *, const chip::app::DataModel::Nullable<chip::app::Clusters::TimeSynchronization::StatusCode> &);
 typedef void (*TimeSynchronizationClusterTimeSourceEnumAttributeCallback)(void *,
                                                                           chip::app::Clusters::TimeSynchronization::TimeSourceEnum);
 typedef void (*NullableTimeSynchronizationClusterTimeSourceEnumAttributeCallback)(
     void *, const chip::app::DataModel::Nullable<chip::app::Clusters::TimeSynchronization::TimeSourceEnum> &);
-typedef void (*TimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback)(
-    void *, chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum);
-typedef void (*NullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback)(
-    void *, const chip::app::DataModel::Nullable<chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum> &);
 typedef void (*AdministratorCommissioningClusterCommissioningWindowStatusEnumAttributeCallback)(
     void *, chip::app::Clusters::AdministratorCommissioning::CommissioningWindowStatusEnum);
 typedef void (*NullableAdministratorCommissioningClusterCommissioningWindowStatusEnumAttributeCallback)(
@@ -802,24 +793,6 @@ typedef void (*EthernetNetworkDiagnosticsGeneratedCommandListListAttributeCallba
 typedef void (*EthernetNetworkDiagnosticsAcceptedCommandListListAttributeCallback)(
     void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & data);
 typedef void (*EthernetNetworkDiagnosticsAttributeListListAttributeCallback)(
-    void * context, const chip::app::DataModel::DecodableList<chip::AttributeId> & data);
-typedef void (*TimeSynchronizationTrustedTimeSourceListAttributeCallback)(
-    void * context,
-    const chip::app::DataModel::Nullable<chip::app::DataModel::DecodableList<
-        chip::app::Clusters::TimeSynchronization::Structs::TrustedTimeSourceStruct::DecodableType>> & data);
-typedef void (*TimeSynchronizationTimeZoneListAttributeCallback)(
-    void * context,
-    const chip::app::DataModel::DecodableList<chip::app::Clusters::TimeSynchronization::Structs::TimeZoneStruct::DecodableType> &
-        data);
-typedef void (*TimeSynchronizationDSTOffsetListAttributeCallback)(
-    void * context,
-    const chip::app::DataModel::DecodableList<chip::app::Clusters::TimeSynchronization::Structs::DSTOffsetStruct::DecodableType> &
-        data);
-typedef void (*TimeSynchronizationGeneratedCommandListListAttributeCallback)(
-    void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & data);
-typedef void (*TimeSynchronizationAcceptedCommandListListAttributeCallback)(
-    void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & data);
-typedef void (*TimeSynchronizationAttributeListListAttributeCallback)(
     void * context, const chip::app::DataModel::DecodableList<chip::AttributeId> & data);
 typedef void (*BridgedDeviceBasicInformationGeneratedCommandListListAttributeCallback)(
     void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & data);
@@ -5667,211 +5640,6 @@ public:
     void OnSubscriptionEstablished();
     using MTREthernetNetworkDiagnosticsAttributeListListAttributeCallbackBridge::KeepAliveOnCallback;
     using MTREthernetNetworkDiagnosticsAttributeListListAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationTrustedTimeSourceListAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationTrustedTimeSourceListAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                       MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationTrustedTimeSourceListAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void
-    OnSuccessFn(void * context,
-                const chip::app::DataModel::Nullable<chip::app::DataModel::DecodableList<
-                    chip::app::Clusters::TimeSynchronization::Structs::TrustedTimeSourceStruct::DecodableType>> & value);
-};
-
-class MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationTrustedTimeSourceListAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationTimeZoneListAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationTimeZoneListAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                              MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationTimeZoneListAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context,
-                            const chip::app::DataModel::DecodableList<
-                                chip::app::Clusters::TimeSynchronization::Structs::TimeZoneStruct::DecodableType> & value);
-};
-
-class MTRTimeSynchronizationTimeZoneListAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationTimeZoneListAttributeCallbackSubscriptionBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                          MTRActionBlock action,
-                                                                          MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationTimeZoneListAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationDSTOffsetListAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationDSTOffsetListAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                               MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationDSTOffsetListAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context,
-                            const chip::app::DataModel::DecodableList<
-                                chip::app::Clusters::TimeSynchronization::Structs::DSTOffsetStruct::DecodableType> & value);
-};
-
-class MTRTimeSynchronizationDSTOffsetListAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationDSTOffsetListAttributeCallbackSubscriptionBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                           MTRActionBlock action,
-                                                                           MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationDSTOffsetListAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationGeneratedCommandListListAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationGeneratedCommandListListAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                          MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationGeneratedCommandListListAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & value);
-};
-
-class MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationGeneratedCommandListListAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationAcceptedCommandListListAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationAcceptedCommandListListAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                         MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationAcceptedCommandListListAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & value);
-};
-
-class MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationAcceptedCommandListListAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationAttributeListListAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationAttributeListListAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationAttributeListListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationAttributeListListAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationAttributeListListAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                   MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationAttributeListListAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context, const chip::app::DataModel::DecodableList<chip::AttributeId> & value);
-};
-
-class MTRTimeSynchronizationAttributeListListAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationAttributeListListAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationAttributeListListAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationAttributeListListAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationAttributeListListAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationAttributeListListAttributeCallbackBridge::OnDone;
 
 private:
     MTRSubscriptionEstablishedHandler mEstablishedHandler;
@@ -11487,21 +11255,6 @@ public:
                             const chip::app::Clusters::DiagnosticLogs::Commands::RetrieveLogsResponse::DecodableType & data);
 };
 
-class MTRTimeSynchronizationClusterSetTimeZoneResponseCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationClusterSetTimeZoneResponseCallbackType>
-{
-public:
-    MTRTimeSynchronizationClusterSetTimeZoneResponseCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationClusterSetTimeZoneResponseCallbackType>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationClusterSetTimeZoneResponseCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                   MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationClusterSetTimeZoneResponseCallbackType>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context,
-                            const chip::app::Clusters::TimeSynchronization::Commands::SetTimeZoneResponse::DecodableType & data);
-};
-
 class MTROperationalCredentialsClusterAttestationResponseCallbackBridge
     : public MTRCallbackBridge<OperationalCredentialsClusterAttestationResponseCallbackType>
 {
@@ -15844,73 +15597,6 @@ private:
     MTRSubscriptionEstablishedHandler mEstablishedHandler;
 };
 
-class MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationClusterStatusCodeAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationClusterStatusCodeAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                   MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationClusterStatusCodeAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context, chip::app::Clusters::TimeSynchronization::StatusCode value);
-};
-
-class MTRTimeSynchronizationClusterStatusCodeAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationClusterStatusCodeAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationClusterStatusCodeAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge
-    : public MTRCallbackBridge<NullableTimeSynchronizationClusterStatusCodeAttributeCallback>
-{
-public:
-    MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<NullableTimeSynchronizationClusterStatusCodeAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                           MTRActionBlock action) :
-        MTRCallbackBridge<NullableTimeSynchronizationClusterStatusCodeAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context,
-                            const chip::app::DataModel::Nullable<chip::app::Clusters::TimeSynchronization::StatusCode> & value);
-};
-
-class MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackSubscriptionBridge
-    : public MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge
-{
-public:
-    MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRNullableTimeSynchronizationClusterStatusCodeAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
 class MTRTimeSynchronizationClusterTimeSourceEnumAttributeCallbackBridge
     : public MTRCallbackBridge<TimeSynchronizationClusterTimeSourceEnumAttributeCallback>
 {
@@ -15973,77 +15659,6 @@ public:
     void OnSubscriptionEstablished();
     using MTRNullableTimeSynchronizationClusterTimeSourceEnumAttributeCallbackBridge::KeepAliveOnCallback;
     using MTRNullableTimeSynchronizationClusterTimeSourceEnumAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge
-    : public MTRCallbackBridge<TimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback>
-{
-public:
-    MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler) :
-        MTRCallbackBridge<TimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge(dispatch_queue_t queue, ResponseHandler handler,
-                                                                             MTRActionBlock action) :
-        MTRCallbackBridge<TimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback>(queue, handler, action, OnSuccessFn){};
-
-    static void OnSuccessFn(void * context, chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum value);
-};
-
-class MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackSubscriptionBridge
-    : public MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge
-{
-public:
-    MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge::OnDone;
-
-private:
-    MTRSubscriptionEstablishedHandler mEstablishedHandler;
-};
-
-class MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge
-    : public MTRCallbackBridge<NullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback>
-{
-public:
-    MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge(dispatch_queue_t queue,
-                                                                                     ResponseHandler handler) :
-        MTRCallbackBridge<NullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback>(queue, handler, OnSuccessFn){};
-
-    MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge(dispatch_queue_t queue,
-                                                                                     ResponseHandler handler,
-                                                                                     MTRActionBlock action) :
-        MTRCallbackBridge<NullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallback>(queue, handler, action,
-                                                                                                   OnSuccessFn){};
-
-    static void
-    OnSuccessFn(void * context,
-                const chip::app::DataModel::Nullable<chip::app::Clusters::TimeSynchronization::TimeZoneDatabaseEnum> & value);
-};
-
-class MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackSubscriptionBridge
-    : public MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge
-{
-public:
-    MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackSubscriptionBridge(
-        dispatch_queue_t queue, ResponseHandler handler, MTRActionBlock action,
-        MTRSubscriptionEstablishedHandler establishedHandler) :
-        MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge(queue, handler, action),
-        mEstablishedHandler(establishedHandler)
-    {}
-
-    void OnSubscriptionEstablished();
-    using MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge::KeepAliveOnCallback;
-    using MTRNullableTimeSynchronizationClusterTimeZoneDatabaseEnumAttributeCallbackBridge::OnDone;
 
 private:
     MTRSubscriptionEstablishedHandler mEstablishedHandler;
