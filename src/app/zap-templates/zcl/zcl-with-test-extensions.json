@@ -274,7 +274,9 @@
             "TrustedTimeSource",
             "DefaultNTP",
             "TimeZone",
-            "DSTOffset"
+            "DSTOffset",
+            "UTCTime",
+            "LocalTime"
         ]
     },
     "defaultReportingPolicy": "mandatory",
