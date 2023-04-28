@@ -323,7 +323,6 @@ CHIP_ERROR TimeSynchronizationAttrAccess::Read(const ConcreteReadAttributePath &
     case UTCTime::Id: {
         System::Clock::Microseconds64 utcTime;
         VerifyOrReturnError(System::SystemClock().GetClock_RealTime(utcTime) == CHIP_NO_ERROR, aEncoder.EncodeNull());
-
         return aEncoder.Encode(utcTime.count());
     }
     case TrustedTimeSource::Id: {
@@ -340,12 +339,10 @@ CHIP_ERROR TimeSynchronizationAttrAccess::Read(const ConcreteReadAttributePath &
     }
     case TimeZoneListMaxSize::Id: { // can't find a way to initialize default value for F quality
         uint8_t max = CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE;
-        TimeZoneListMaxSize::Set(aPath.mEndpointId, CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE);
         return aEncoder.Encode(max);
     }
     case DSTOffsetListMaxSize::Id: {
         uint8_t max = CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE;
-        DSTOffsetListMaxSize::Set(aPath.mEndpointId, CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE);
         return aEncoder.Encode(max);
     }
     case LocalTime::Id: {
