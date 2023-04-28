@@ -466,21 +466,19 @@ static bool utcTimeChanged(uint64_t utcTime)
 
     Server::GetInstance().GetFabricTable().GetLastKnownGoodChipEpochTime(lastKnownGoodChipEpoch);
     System::SystemClock().GetClock_RealTime(realTime);
-    ChipLogError(Zcl, "UTCTime: %llu Last Known Good Time: %u Real Time: %llu", utcTime, lastKnownGoodChipEpoch.count(),
-                 realTime.count());
     chip::UnixEpochToChipEpochTime((uint32_t)(utcTime / chip::kMicrosecondsPerSecond), utcTimetoChipEpoch);
+    ChipLogProgress(Zcl, "UTC ChipEpoch Time: %u Last Known Good Time: %u Real Time: %llu", utcTimetoChipEpoch,
+                    lastKnownGoodChipEpoch.count(), realTime.count());
 
-    if (utcTimetoChipEpoch >= lastKnownGoodChipEpoch.count()) // update Last Known Good Time if a more recent time is obtained
-    {
-        Server::GetInstance().GetFabricTable().SetLastKnownGoodChipEpochTime(System::Clock::Seconds32(utcTimetoChipEpoch));
-        System::SystemClock().SetClock_RealTime(System::Clock::Microseconds64(utcTime));
+    VerifyOrReturnValue(Server::GetInstance().GetFabricTable().SetLastKnownGoodChipEpochTime(
+                            System::Clock::Seconds32(utcTimetoChipEpoch)) == CHIP_NO_ERROR,
+                        false);
+    VerifyOrReturnValue(System::SystemClock().SetClock_RealTime(System::Clock::Microseconds64(utcTime)) == CHIP_NO_ERROR, false);
 
-        Server::GetInstance().GetFabricTable().GetLastKnownGoodChipEpochTime(lastKnownGoodChipEpoch);
-        System::SystemClock().GetClock_RealTime(realTime);
-        ChipLogError(Zcl, " Last Known Good Time: %u Real Time: %llu", lastKnownGoodChipEpoch.count(), realTime.count());
-        return true;
-    }
-    return false;
+    Server::GetInstance().GetFabricTable().GetLastKnownGoodChipEpochTime(lastKnownGoodChipEpoch);
+    System::SystemClock().GetClock_RealTime(realTime);
+    ChipLogProgress(Zcl, " Last Known Good Time: %u Real Time: %llu", lastKnownGoodChipEpoch.count(), realTime.count());
+    return true;
 }
 
 bool emberAfTimeSynchronizationClusterSetUtcTimeCallback(
