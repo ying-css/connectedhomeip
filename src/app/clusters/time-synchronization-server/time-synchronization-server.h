@@ -58,7 +58,7 @@ public:
     TimeSyncDataProvider GetDataProvider(void) { return mTimeSyncDataProvider; }
 
     CHIP_ERROR SetTrustedTimeSource(DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> tts);
-    CHIP_ERROR SetDefaultNtp(DataModel::Nullable<chip::MutableByteSpan> dntp);
+    CHIP_ERROR SetDefaultNtp(DataModel::Nullable<chip::CharSpan> & dntp);
     /**
      * @brief Sets TimeZone Attribute. Assumes the size of the list is already validated.
      *
@@ -75,7 +75,7 @@ public:
     CHIP_ERROR SetDSTOffset(DataModel::DecodableList<TimeSynchronization::Structs::DSTOffsetStruct::Type> dst);
     CHIP_ERROR ClearDSTOffset(void);
     DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> & GetTrustedTimeSource(void);
-    DataModel::Nullable<chip::MutableByteSpan> & GetDefaultNtp(void);
+    CHIP_ERROR GetDefaultNtp(MutableByteSpan & dntp);
     DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type> & GetTimeZone(void);
     DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> & GetDSTOffset(void);
 
@@ -83,7 +83,6 @@ public:
 
 private:
     DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> mTrustedTimeSource;
-    DataModel::Nullable<chip::MutableByteSpan> mDefaultNtp;
     DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type> mTimeZoneList =
         DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type>(mTz);
     DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> mDstOffsetList =
@@ -95,7 +94,6 @@ private:
     TimeSynchronization::Structs::TimeZoneStruct::Type mTz[CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE];
     struct timeZoneName mNames[CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE];
     TimeSynchronization::Structs::DSTOffsetStruct::Type mDst[CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE];
-    uint8_t mDefaultNtpBuf[DefaultNTP::TypeInfo::MaxLength()];
 
     TimeSyncDataProvider mTimeSyncDataProvider;
     static TimeSynchronizationServer mTimeSyncInstance;

@@ -49,7 +49,7 @@ public:
     CHIP_ERROR LoadTrustedTimeSource(TrustedTimeSource & timeSource);
     CHIP_ERROR ClearTrustedTimeSource();
 
-    CHIP_ERROR StoreDefaultNtp(const MutableByteSpan & defaultNtp);
+    CHIP_ERROR StoreDefaultNtp(const CharSpan & defaultNtp);
     CHIP_ERROR LoadDefaultNtp(MutableByteSpan & defaultNtp);
     CHIP_ERROR ClearDefaultNtp();
 

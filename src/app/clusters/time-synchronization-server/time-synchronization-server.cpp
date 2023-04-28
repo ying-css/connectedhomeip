@@ -93,19 +93,15 @@ TimeSynchronizationServer & TimeSynchronizationServer::Instance(void)
 
 void TimeSynchronizationServer::Init()
 {
-    TimeSynchronization::Structs::TrustedTimeSourceStruct::Type tts;
-    chip::MutableByteSpan mutableDntp(mDefaultNtpBuf);
-
     mTimeSyncDataProvider.Init(Server::GetInstance().GetPersistentStorage());
 
+    TimeSynchronization::Structs::TrustedTimeSourceStruct::Type tts;
     (CHIP_NO_ERROR == mTimeSyncDataProvider.LoadTrustedTimeSource(tts)) ? (void) mTrustedTimeSource.SetNonNull(tts)
                                                                         : mTrustedTimeSource.SetNull();
-    (CHIP_NO_ERROR == mTimeSyncDataProvider.LoadDefaultNtp(mutableDntp)) ? (void) mDefaultNtp.SetNonNull(mutableDntp)
-                                                                         : mDefaultNtp.SetNull();
-
     auto tz = mTimeZoneList.begin();
     for (size_t i = 0; i < mTimeZoneList.size(); i++)
     {
+        memset(mNames[i].name, 0, sizeof(mNames[i].name));
         const char * buf = reinterpret_cast<const char *>(mNames[i].name);
         tz[i].name.SetValue(chip::CharSpan(buf, sizeof(mNames[i].name)));
     }
@@ -123,30 +119,24 @@ CHIP_ERROR TimeSynchronizationServer::SetTrustedTimeSource(
     mTrustedTimeSource = tts;
     if (!mTrustedTimeSource.IsNull())
     {
-        mTimeSyncDataProvider.StoreTrustedTimeSource(mTrustedTimeSource.Value());
+        return mTimeSyncDataProvider.StoreTrustedTimeSource(mTrustedTimeSource.Value());
     }
     else
     {
-        mTimeSyncDataProvider.ClearTrustedTimeSource();
+        return mTimeSyncDataProvider.ClearTrustedTimeSource();
     }
-
-    return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR TimeSynchronizationServer::SetDefaultNtp(DataModel::Nullable<chip::MutableByteSpan> dntp)
+CHIP_ERROR TimeSynchronizationServer::SetDefaultNtp(DataModel::Nullable<chip::CharSpan> & dntp)
 {
     if (!dntp.IsNull())
     {
-        memcpy(mDefaultNtpBuf, dntp.Value().data(), dntp.Value().size());
-        mDefaultNtp.SetNonNull(MutableByteSpan(mDefaultNtpBuf, dntp.Value().size()));
-        return mTimeSyncDataProvider.StoreDefaultNtp(mDefaultNtp.Value());
+        return mTimeSyncDataProvider.StoreDefaultNtp(dntp.Value());
     }
     else
     {
-        mDefaultNtp.SetNull();
         return mTimeSyncDataProvider.ClearDefaultNtp();
     }
-    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR TimeSynchronizationServer::SetTimeZone(DataModel::DecodableList<TimeSynchronization::Structs::TimeZoneStruct::Type> tz)
@@ -205,15 +195,18 @@ TimeSynchronizationServer::GetTrustedTimeSource(void)
 {
     return mTrustedTimeSource;
 }
-DataModel::Nullable<chip::MutableByteSpan> & TimeSynchronizationServer::GetDefaultNtp(void)
+
+CHIP_ERROR TimeSynchronizationServer::GetDefaultNtp(MutableByteSpan & dntp)
 {
-    return mDefaultNtp;
+    return mTimeSyncDataProvider.LoadDefaultNtp(dntp);
 }
+
 DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type> & TimeSynchronizationServer::GetTimeZone(void)
 {
     mTimeZoneList = DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type>(mTz, mTimeZoneListSize);
     return mTimeZoneList;
 }
+
 DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> & TimeSynchronizationServer::GetDSTOffset(void)
 {
     mDstOffsetList = DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type>(mDst, mDstOffsetListSize);
@@ -267,28 +260,23 @@ TimeSynchronizationAttrAccess gAttrAccess;
 
 CHIP_ERROR TimeSynchronizationAttrAccess::ReadTrustedTimeSource(EndpointId endpoint, AttributeValueEncoder & aEncoder)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
     auto tts       = TimeSynchronizationServer::Instance().GetTrustedTimeSource();
-    err            = aEncoder.Encode(tts);
-
-    return err;
+    return aEncoder.Encode(tts);
 }
 
 CHIP_ERROR TimeSynchronizationAttrAccess::ReadDefaultNtp(EndpointId endpoint, AttributeValueEncoder & aEncoder)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
-    auto dntp      = TimeSynchronizationServer::Instance().GetDefaultNtp();
-    if (!dntp.IsNull())
+    uint8_t buffer[DefaultNTP::TypeInfo::MaxLength()];
+    MutableByteSpan dntp(buffer);
+    if (TimeSynchronizationServer::Instance().GetDefaultNtp(dntp) == CHIP_NO_ERROR && dntp.size() != 0)
     {
-        const char * buf = reinterpret_cast<const char *>(dntp.Value().data());
-        err              = aEncoder.Encode(chip::CharSpan(buf, strnlen(buf, dntp.Value().size())));
+        const char * charBuf = reinterpret_cast<const char *>(buffer);
+        return aEncoder.Encode(chip::CharSpan(charBuf, dntp.size()));
     }
     else
     {
-        err = aEncoder.EncodeNull();
+        return aEncoder.EncodeNull();
     }
-
-    return err;
 }
 
 CHIP_ERROR TimeSynchronizationAttrAccess::ReadTimeZone(EndpointId endpoint, AttributeValueEncoder & aEncoder)
@@ -363,7 +351,6 @@ CHIP_ERROR TimeSynchronizationAttrAccess::Read(const ConcreteReadAttributePath &
     case LocalTime::Id: {
         uint64_t localTime = 0;
         VerifyOrReturnError(computeLocalTime(aPath.mEndpointId, localTime), aEncoder.EncodeNull());
-
         return aEncoder.Encode(localTime);
     }
     default: {
@@ -648,17 +635,16 @@ bool emberAfTimeSynchronizationClusterSetDefaultNTPCallback(
     const chip::app::Clusters::TimeSynchronization::Commands::SetDefaultNTP::DecodableType & commandData)
 {
     Status status = Status::Success;
-    auto dntpChar = commandData.defaultNTP;
-    DataModel::Nullable<chip::MutableByteSpan> dntpByte;
+    auto dNtpChar = commandData.defaultNTP;
 
-    if (!dntpChar.IsNull())
+    if (!dNtpChar.IsNull())
     {
-        if (!GetDelegate()->isNTPAddressValid(dntpChar.Value()))
+        if (!GetDelegate()->isNTPAddressValid(dNtpChar.Value()))
         {
             commandObj->AddStatus(commandPath, Status::InvalidCommand);
             return true;
         }
-        if (GetDelegate()->isNTPAddressDomain(dntpChar.Value()))
+        if (GetDelegate()->isNTPAddressDomain(dNtpChar.Value()))
         {
             bool dnsResolve;
             SupportsDNSResolve::Get(commandPath.mEndpointId, &dnsResolve);
@@ -669,25 +655,17 @@ bool emberAfTimeSynchronizationClusterSetDefaultNTPCallback(
             }
         }
 
-        uint8_t buffer[DefaultNTP::TypeInfo::MaxLength()];
-        chip::MutableByteSpan dntp(buffer);
-        size_t len = dntpChar.Value().size();
+        size_t len = dNtpChar.Value().size();
 
         if (len > DefaultNTP::TypeInfo::MaxLength())
         {
             commandObj->AddStatus(commandPath, Status::ConstraintError);
             return true;
         }
-        memcpy(buffer, dntpChar.Value().data(), len);
-        dntp = MutableByteSpan(dntp.data(), len);
-        dntpByte.SetNonNull(dntp);
     }
-    else
-    {
-        dntpByte.SetNull();
-    }
+
     status =
-        (CHIP_NO_ERROR == TimeSynchronizationServer::Instance().SetDefaultNtp(dntpByte)) ? Status::Success : Status::InvalidCommand;
+        (CHIP_NO_ERROR == TimeSynchronizationServer::Instance().SetDefaultNtp(dNtpChar)) ? Status::Success : Status::InvalidCommand;
 
     commandObj->AddStatus(commandPath, status);
     return true;

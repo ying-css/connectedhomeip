@@ -75,7 +75,7 @@ CHIP_ERROR TimeSyncDataProvider::ClearTrustedTimeSource()
     return mPersistentStorage->SyncDeleteKeyValue(DefaultStorageKeyAllocator::TSTrustedTimeSource().KeyName());
 }
 
-CHIP_ERROR TimeSyncDataProvider::StoreDefaultNtp(const MutableByteSpan & defaultNtp)
+CHIP_ERROR TimeSyncDataProvider::StoreDefaultNtp(const CharSpan & defaultNtp)
 {
     return mPersistentStorage->SyncSetKeyValue(DefaultStorageKeyAllocator::TSDefaultNTP().KeyName(), defaultNtp.data(),
                                                static_cast<uint16_t>(defaultNtp.size()));
