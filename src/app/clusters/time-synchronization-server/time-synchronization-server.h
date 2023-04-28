@@ -55,95 +55,29 @@ public:
     void Init();
 
     static TimeSynchronizationServer & Instance(void);
-
     TimeSyncDataProvider GetDataProvider(void) { return mTimeSyncDataProvider; }
 
-    CHIP_ERROR SetTrustedTimeSource(DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> tts)
-    {
-        if (!tts.IsNull())
-        {
-            mTrustedTimeSource.SetNonNull(tts.Value());
-            mTimeSyncDataProvider.StoreTrustedTimeSource(tts.Value());
-        }
-        else
-        {
-            mTrustedTimeSource.SetNull();
-            mTimeSyncDataProvider.ClearTrustedTimeSource();
-        }
-
-        return CHIP_NO_ERROR;
-    }
-
-    CHIP_ERROR SetDefaultNtp(DataModel::Nullable<chip::MutableByteSpan> dntp)
-    {
-        if (!dntp.IsNull())
-        {
-            memcpy(mDefaultNtpBuf, dntp.Value().data(), dntp.Value().size());
-            mDefaultNtp.SetNonNull(MutableByteSpan(mDefaultNtpBuf, dntp.Value().size()));
-            return mTimeSyncDataProvider.StoreDefaultNtp(mDefaultNtp.Value());
-        }
-        else
-        {
-            mDefaultNtp.SetNull();
-            return mTimeSyncDataProvider.ClearDefaultNtp();
-        }
-        return CHIP_NO_ERROR;
-    }
-
-    CHIP_ERROR SetTimeZone(DataModel::DecodableList<TimeSynchronization::Structs::TimeZoneStruct::Type> tz)
-    {
-        auto mTzL = mTimeZoneList.begin();
-        auto tzL  = tz.begin();
-        size_t i  = 0;
-
-        while (tzL.Next())
-        {
-            mTzL[i].offset  = tzL.GetValue().offset;
-            mTzL[i].validAt = tzL.GetValue().validAt;
-            if (tzL.GetValue().name.HasValue())
-            {
-                const char * buf = tzL.GetValue().name.Value().data();
-                size_t len       = tzL.GetValue().name.Value().size();
-                Platform::CopyString(mNames[i].name, chip::CharSpan(buf, len));
-            }
-            i++;
-        }
-
-        return mTimeSyncDataProvider.StoreTimeZone(mTimeZoneList);
-    }
-
-    CHIP_ERROR SetDSTOffset(DataModel::DecodableList<TimeSynchronization::Structs::DSTOffsetStruct::Type> dst)
-    {
-        auto mDstL = mDstOffList.begin();
-        auto dstL  = dst.begin();
-        size_t i   = 0;
-
-        while (dstL.Next())
-        {
-            mDstL[i] = dstL.GetValue();
-            i++;
-        }
-
-        return mTimeSyncDataProvider.StoreDSTOffset(mDstOffList);
-    }
-
-    CHIP_ERROR ClearDSTOffset()
-    {
-        for (size_t i = 0; i < CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE; i++)
-        {
-            mDst[i] = { 0 };
-        }
-
-        return mTimeSyncDataProvider.ClearDSTOffset();
-    }
-
-    DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> & GetTrustedTimeSource(void)
-    {
-        return mTrustedTimeSource;
-    }
-    DataModel::Nullable<chip::MutableByteSpan> & GetDefaultNtp(void) { return mDefaultNtp; }
-    DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type> & GetTimeZone(void) { return mTimeZoneList; }
-    DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> & GetDSTOffset(void) { return mDstOffList; }
+    CHIP_ERROR SetTrustedTimeSource(DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> tts);
+    CHIP_ERROR SetDefaultNtp(DataModel::Nullable<chip::MutableByteSpan> dntp);
+    /**
+     * @brief Sets TimeZone Attribute. Assumes the size of the list is already validated.
+     *
+     * @param tz TimeZone list
+     * @return CHIP_ERROR
+     */
+    CHIP_ERROR SetTimeZone(DataModel::DecodableList<TimeSynchronization::Structs::TimeZoneStruct::Type> tz);
+    /**
+     * @brief Sets DstOffset Attribute. Assumes the size of the list is already validated.
+     *
+     * @param dst DstOffset list
+     * @return CHIP_ERROR
+     */
+    CHIP_ERROR SetDSTOffset(DataModel::DecodableList<TimeSynchronization::Structs::DSTOffsetStruct::Type> dst);
+    CHIP_ERROR ClearDSTOffset(void);
+    DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> & GetTrustedTimeSource(void);
+    DataModel::Nullable<chip::MutableByteSpan> & GetDefaultNtp(void);
+    DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type> & GetTimeZone(void);
+    DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> & GetDSTOffset(void);
 
     void ScheduleDelayedAction(System::Clock::Seconds32 delay, System::TimerCompleteCallback action, void * aAppState);
 
@@ -151,9 +85,12 @@ private:
     DataModel::Nullable<TimeSynchronization::Structs::TrustedTimeSourceStruct::Type> mTrustedTimeSource;
     DataModel::Nullable<chip::MutableByteSpan> mDefaultNtp;
     DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type> mTimeZoneList =
-        DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type>(mTz, CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE);
-    DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> mDstOffList =
-        DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type>(mDst, CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE);
+        DataModel::List<TimeSynchronization::Structs::TimeZoneStruct::Type>(mTz);
+    DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type> mDstOffsetList =
+        DataModel::List<TimeSynchronization::Structs::DSTOffsetStruct::Type>(mDst);
+
+    uint8_t mTimeZoneListSize  = 0;
+    uint8_t mDstOffsetListSize = 0;
 
     TimeSynchronization::Structs::TimeZoneStruct::Type mTz[CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE];
     struct timeZoneName mNames[CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE];

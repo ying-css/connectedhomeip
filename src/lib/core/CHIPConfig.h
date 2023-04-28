@@ -1382,7 +1382,7 @@ extern const char CHIP_NON_PRODUCTION_MARKER[];
  * Defines the size of the time zone list
  */
 #ifndef CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE
-#define CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE 1
+#define CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE 2
 #endif
 
 /**

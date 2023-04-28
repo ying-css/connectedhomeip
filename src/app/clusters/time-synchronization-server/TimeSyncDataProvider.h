@@ -54,11 +54,11 @@ public:
     CHIP_ERROR ClearDefaultNtp();
 
     CHIP_ERROR StoreTimeZone(const TimeZone & timeZoneList);
-    CHIP_ERROR LoadTimeZone(TimeZone & timeZoneList);
+    CHIP_ERROR LoadTimeZone(TimeZone & timeZoneList, uint8_t & size);
     CHIP_ERROR ClearTimeZone();
 
     CHIP_ERROR StoreDSTOffset(const DSTOffset & dstOffsetList);
-    CHIP_ERROR LoadDSTOffset(DSTOffset & dstOffsetList);
+    CHIP_ERROR LoadDSTOffset(DSTOffset & dstOffsetList, uint8_t & size);
     CHIP_ERROR ClearDSTOffset();
 
 private:

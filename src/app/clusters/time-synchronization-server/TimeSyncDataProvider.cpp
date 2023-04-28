@@ -34,17 +34,13 @@ namespace chip {
 //   len(w.encoding)
 constexpr size_t kTrustedTimeSourceMaxSerializedSize = 23u + 9u;   // adding 9 as buffer
 constexpr size_t kDefaultNtpMaxSerializedSize        = 133u + 11u; // adding 11 as buffer
-#if 1                                                              // User TZ feature
-constexpr size_t kTimeZoneMaxSerializedSize  = 90u + 6u;           // adding 6 as buffer
-constexpr size_t kDSTOffsetMaxSerializedSize = 34u + 6u;           // adding 6 as buffer
-#endif
+constexpr size_t kTimeZoneMaxSerializedSize          = 90u + 6u;   // adding 6 as buffer
+constexpr size_t kDSTOffsetMaxSerializedSize         = 34u + 6u;   // adding 6 as buffer
 
-#if 1 // user TZ feature
+// user TZ feature #if 1
 // Multiply the serialized size by the maximum number of list size and add 2 bytes for the array start and end.
 constexpr size_t kTimeZoneListMaxSerializedSize = kTimeZoneMaxSerializedSize * CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE + 2;
-constexpr size_t kDSTOffsetListMaxSerializedSize =
-    kDSTOffsetMaxSerializedSize * CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE + 2; // Use a define instead
-#endif
+constexpr size_t kDSTOffsetListMaxSerializedSize = kDSTOffsetMaxSerializedSize * CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE + 2;
 
 CHIP_ERROR TimeSyncDataProvider::StoreTrustedTimeSource(const TrustedTimeSource & timeSource)
 {
@@ -104,9 +100,9 @@ CHIP_ERROR TimeSyncDataProvider::StoreTimeZone(const TimeZone & timeZoneList)
     writer.Init(buffer);
     ReturnErrorOnFailure(writer.StartContainer(TLV::AnonymousTag(), TLV::kTLVType_Array, outerType));
 
-    for (auto timeZoneIter = timeZoneList.begin(); timeZoneIter != timeZoneList.end(); timeZoneIter++)
+    for (auto timeZoneIter : timeZoneList)
     {
-        ReturnErrorOnFailure(timeZoneIter->Encode(writer, TLV::AnonymousTag()));
+        ReturnErrorOnFailure(timeZoneIter.Encode(writer, TLV::AnonymousTag()));
     }
 
     ReturnErrorOnFailure(writer.EndContainer(outerType));
@@ -114,10 +110,11 @@ CHIP_ERROR TimeSyncDataProvider::StoreTimeZone(const TimeZone & timeZoneList)
     return mPersistentStorage->SyncSetKeyValue(DefaultStorageKeyAllocator::TSTimeZone().KeyName(), buffer,
                                                static_cast<uint16_t>(writer.GetLengthWritten()));
 }
-CHIP_ERROR TimeSyncDataProvider::LoadTimeZone(TimeZone & timeZoneList)
+CHIP_ERROR TimeSyncDataProvider::LoadTimeZone(TimeZone & timeZoneList, uint8_t & size)
 {
     uint8_t buffer[kTimeZoneListMaxSerializedSize];
     MutableByteSpan bufferSpan(buffer);
+    size = 0;
 
     ReturnErrorOnFailure(Load(DefaultStorageKeyAllocator::TSTimeZone().KeyName(), bufferSpan));
 
@@ -146,6 +143,7 @@ CHIP_ERROR TimeSyncDataProvider::LoadTimeZone(TimeZone & timeZoneList)
     }
 
     ReturnErrorOnFailure(reader.ExitContainer(outerType));
+    size = i;
 
     return CHIP_NO_ERROR;
 }
@@ -176,10 +174,11 @@ CHIP_ERROR TimeSyncDataProvider::StoreDSTOffset(const DSTOffset & dstOffsetList)
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR TimeSyncDataProvider::LoadDSTOffset(DSTOffset & dstOffsetList)
+CHIP_ERROR TimeSyncDataProvider::LoadDSTOffset(DSTOffset & dstOffsetList, uint8_t & size)
 {
     uint8_t buffer[kDSTOffsetListMaxSerializedSize];
     MutableByteSpan bufferSpan(buffer);
+    size = 0;
 
     ReturnErrorOnFailure(Load(DefaultStorageKeyAllocator::TSDSTOffset().KeyName(), bufferSpan));
 
@@ -201,6 +200,7 @@ CHIP_ERROR TimeSyncDataProvider::LoadDSTOffset(DSTOffset & dstOffsetList)
     }
 
     ReturnErrorOnFailure(reader.ExitContainer(outerType));
+    size = i;
 
     return CHIP_NO_ERROR;
 }
