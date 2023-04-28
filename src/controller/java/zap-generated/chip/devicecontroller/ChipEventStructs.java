@@ -687,9 +687,9 @@ public class ChipEventStructs {
 
   public static class TimeSynchronizationClusterTimeZoneStatusEvent {
     public Long offset;
-    public String name;
+    public Optional<String> name;
 
-    public TimeSynchronizationClusterTimeZoneStatusEvent(Long offset, String name) {
+    public TimeSynchronizationClusterTimeZoneStatusEvent(Long offset, Optional<String> name) {
       this.offset = offset;
       this.name = name;
     }

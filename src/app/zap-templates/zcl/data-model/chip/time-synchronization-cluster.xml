@@ -62,9 +62,9 @@ limitations under the License.
 
   <enum name="TimeZoneDatabaseEnum" type="ENUM8">
     <cluster code="0x0038"/>
-    <item name="Full" value="0x01"/>
-    <item name="Partial" value="0x02"/>
-    <item name="None" value="0x03"/>
+    <item name="Full" value="0x00"/>
+    <item name="Partial" value="0x01"/>
+    <item name="None" value="0x02"/>
   </enum>
 
   <struct name="TrustedTimeSourceStruct">
@@ -166,7 +166,7 @@ limitations under the License.
     <event code="0x0002" name="TimeZoneStatus" priority="info" side="server" optional="true">
       <description>This event SHALL be generated when the server changes its time zone offset or name.</description>
       <field id="0" name="Offset" type="INT32S"/>
-      <field id="1" name="Name" type="CHAR_STRING" length="64"/>
+      <field id="1" name="Name" type="CHAR_STRING" length="64" optional="true"/>
     </event>
 
     <event code="0x0003" name="TimeFailure" priority="info" side="server" optional="false">

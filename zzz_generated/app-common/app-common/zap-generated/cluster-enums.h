@@ -1264,14 +1264,14 @@ enum class TimeSourceEnum : uint8_t
 // Enum for TimeZoneDatabaseEnum
 enum class TimeZoneDatabaseEnum : uint8_t
 {
-    kFull    = 0x01,
-    kPartial = 0x02,
-    kNone    = 0x03,
+    kFull    = 0x00,
+    kPartial = 0x01,
+    kNone    = 0x02,
     // All received enum values that are not listed above will be mapped
     // to kUnknownEnumValue. This is a helper enum value that should only
     // be used by code to process how it handles receiving and unknown
     // enum value. This specific should never be transmitted.
-    kUnknownEnumValue = 0,
+    kUnknownEnumValue = 3,
 };
 
 // Bitmap for TimeSynchronizationFeature

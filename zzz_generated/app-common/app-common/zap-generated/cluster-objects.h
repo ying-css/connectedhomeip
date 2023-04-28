@@ -10910,7 +10910,7 @@ public:
     static constexpr bool kIsFabricScoped = false;
 
     int32_t offset = static_cast<int32_t>(0);
-    chip::CharSpan name;
+    Optional<chip::CharSpan> name;
 
     CHIP_ERROR Encode(TLV::TLVWriter & writer, TLV::Tag tag) const;
 };
@@ -10923,7 +10923,7 @@ public:
     static constexpr ClusterId GetClusterId() { return Clusters::TimeSynchronization::Id; }
 
     int32_t offset = static_cast<int32_t>(0);
-    chip::CharSpan name;
+    Optional<chip::CharSpan> name;
 
     CHIP_ERROR Decode(TLV::TLVReader & reader);
 };

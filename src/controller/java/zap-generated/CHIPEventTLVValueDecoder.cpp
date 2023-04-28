@@ -1785,7 +1785,17 @@ jobject DecodeEventValue(const app::ConcreteEventPath & aPath, TLV::TLVReader & 
                 value_offsetClassName.c_str(), value_offsetCtorSignature.c_str(), cppValue.offset, value_offset);
 
             jobject value_name;
-            LogErrorOnFailure(chip::JniReferences::GetInstance().CharToStringUTF(cppValue.name, value_name));
+            if (!cppValue.name.HasValue())
+            {
+                chip::JniReferences::GetInstance().CreateOptional(nullptr, value_name);
+            }
+            else
+            {
+                jobject value_nameInsideOptional;
+                LogErrorOnFailure(
+                    chip::JniReferences::GetInstance().CharToStringUTF(cppValue.name.Value(), value_nameInsideOptional));
+                chip::JniReferences::GetInstance().CreateOptional(value_nameInsideOptional, value_name);
+            }
 
             jclass timeZoneStatusStructClass;
             err = chip::JniReferences::GetInstance().GetClassRef(
@@ -1797,7 +1807,7 @@ jobject DecodeEventValue(const app::ConcreteEventPath & aPath, TLV::TLVReader & 
                 return nullptr;
             }
             jmethodID timeZoneStatusStructCtor =
-                env->GetMethodID(timeZoneStatusStructClass, "<init>", "(Ljava/lang/Long;Ljava/lang/String;)V");
+                env->GetMethodID(timeZoneStatusStructClass, "<init>", "(Ljava/lang/Long;Ljava/util/Optional;)V");
             if (timeZoneStatusStructCtor == nullptr)
             {
                 ChipLogError(Zcl, "Could not find ChipEventStructs$TimeSynchronizationClusterTimeZoneStatusEvent constructor");

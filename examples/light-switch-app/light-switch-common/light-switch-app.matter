@@ -1463,9 +1463,9 @@ server cluster TimeSynchronization = 56 {
   }
 
   enum TimeZoneDatabaseEnum : ENUM8 {
-    kFull = 1;
-    kPartial = 2;
-    kNone = 3;
+    kFull = 0;
+    kPartial = 1;
+    kNone = 2;
   }
 
   bitmap TimeSynchronizationFeature : BITMAP32 {
@@ -1507,7 +1507,7 @@ server cluster TimeSynchronization = 56 {
 
   info event TimeZoneStatus = 2 {
     INT32S offset = 0;
-    CHAR_STRING name = 1;
+    optional CHAR_STRING name = 1;
   }
 
   info event TimeFailure = 3 {
@@ -2447,14 +2447,14 @@ endpoint 0 {
     emits event TimeZoneStatus;
     emits event TimeFailure;
     emits event MissingTrustedTimeSource;
-    ram      attribute UTCTime;
+    callback attribute UTCTime;
     ram      attribute granularity default = 0x00;
     ram      attribute timeSource default = 0x00;
     callback attribute trustedTimeSource;
     callback attribute defaultNTP;
     callback attribute timeZone default = 1;
     callback attribute DSTOffset;
-    ram      attribute localTime;
+    callback attribute localTime;
     ram      attribute timeZoneDatabase default = 0;
     ram      attribute timeZoneListMaxSize default = 3;
     ram      attribute DSTOffsetListMaxSize;

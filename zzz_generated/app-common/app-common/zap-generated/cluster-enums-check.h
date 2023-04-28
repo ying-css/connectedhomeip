@@ -1111,7 +1111,7 @@ static auto __attribute__((unused)) EnsureKnownEnumValue(TimeSynchronization::Ti
     case EnumType::kNone:
         return val;
     default:
-        return static_cast<EnumType>(0);
+        return static_cast<EnumType>(3);
     }
 }
 

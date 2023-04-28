@@ -11046,14 +11046,14 @@ class TimeSynchronization(Cluster):
             kUnknownEnumValue = 17,
 
         class TimeZoneDatabaseEnum(MatterIntEnum):
-            kFull = 0x01
-            kPartial = 0x02
-            kNone = 0x03
+            kFull = 0x00
+            kPartial = 0x01
+            kNone = 0x02
             # All received enum values that are not listed above will be mapped
             # to kUnknownEnumValue. This is a helper enum value that should only
             # be used by code to process how it handles receiving and unknown
             # enum value. This specific should never be transmitted.
-            kUnknownEnumValue = 0,
+            kUnknownEnumValue = 3,
 
     class Bitmaps:
         class TimeSynchronizationFeature(IntFlag):
@@ -11578,11 +11578,11 @@ class TimeSynchronization(Cluster):
                 return ClusterObjectDescriptor(
                     Fields=[
                         ClusterObjectFieldDescriptor(Label="offset", Tag=0, Type=int),
-                        ClusterObjectFieldDescriptor(Label="name", Tag=1, Type=str),
+                        ClusterObjectFieldDescriptor(Label="name", Tag=1, Type=typing.Optional[str]),
                     ])
 
             offset: 'int' = 0
-            name: 'str' = ""
+            name: 'typing.Optional[str]' = None
 
         @dataclass
         class TimeFailure(ClusterEvent):
