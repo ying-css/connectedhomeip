@@ -16,14 +16,7 @@
  *    limitations under the License.
  */
 
-#include <app-common/zap-generated/cluster-objects.h>
-
 #include "TimeSyncManager.h"
-#include <app-common/zap-generated/attributes/Accessors.h>
-#include <app/AttributeAccessInterface.h>
-#include <app/CommandResponseHelper.h>
-#include <app/util/af.h>
-#include <list>
 
 using namespace chip::app::Clusters::TimeSynchronization;
 

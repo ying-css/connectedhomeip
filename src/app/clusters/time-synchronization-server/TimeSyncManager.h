@@ -18,14 +18,7 @@
 
 #pragma once
 
-#include <app-common/zap-generated/cluster-objects.h>
-
 #include "time-synchronization-delegate.h"
-#include <app-common/zap-generated/attributes/Accessors.h>
-#include <app/AttributeAccessInterface.h>
-#include <app/CommandResponseHelper.h>
-#include <app/util/af.h>
-#include <list>
 
 namespace chip {
 namespace app {

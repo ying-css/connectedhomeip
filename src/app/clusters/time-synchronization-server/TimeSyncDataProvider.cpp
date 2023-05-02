@@ -33,7 +33,6 @@ namespace chip {
 //   w.put(None, s)
 //   len(w.encoding)
 constexpr size_t kTrustedTimeSourceMaxSerializedSize = 23u + 9u;   // adding 9 as buffer
-constexpr size_t kDefaultNtpMaxSerializedSize        = 133u + 11u; // adding 11 as buffer
 constexpr size_t kTimeZoneMaxSerializedSize          = 90u + 6u;   // adding 6 as buffer
 constexpr size_t kDSTOffsetMaxSerializedSize         = 34u + 6u;   // adding 6 as buffer
 

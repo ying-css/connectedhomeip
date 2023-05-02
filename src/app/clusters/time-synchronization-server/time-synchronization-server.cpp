@@ -143,7 +143,7 @@ CHIP_ERROR TimeSynchronizationServer::SetTimeZone(DataModel::DecodableList<TimeS
 {
     auto tzL    = mTimeZoneList.begin();
     auto newTzL = tz.begin();
-    size_t i    = 0;
+    uint8_t i   = 0;
 
     while (newTzL.Next() && i < CHIP_CONFIG_TIME_ZONE_LIST_MAX_SIZE)
     {
@@ -169,7 +169,7 @@ TimeSynchronizationServer::SetDSTOffset(DataModel::DecodableList<TimeSynchroniza
 {
     auto dstL    = mDstOffsetList.begin();
     auto newDstL = dst.begin();
-    size_t i     = 0;
+    uint8_t i    = 0;
 
     while (newDstL.Next() && i < CHIP_CONFIG_DST_OFFSET_LIST_MAX_SIZE)
     {
@@ -260,7 +260,7 @@ TimeSynchronizationAttrAccess gAttrAccess;
 
 CHIP_ERROR TimeSynchronizationAttrAccess::ReadTrustedTimeSource(EndpointId endpoint, AttributeValueEncoder & aEncoder)
 {
-    auto tts       = TimeSynchronizationServer::Instance().GetTrustedTimeSource();
+    auto tts = TimeSynchronizationServer::Instance().GetTrustedTimeSource();
     return aEncoder.Encode(tts);
 }
 
@@ -464,8 +464,6 @@ static bool utcTimeChanged(uint64_t utcTime)
     Server::GetInstance().GetFabricTable().GetLastKnownGoodChipEpochTime(lastKnownGoodChipEpoch);
     System::SystemClock().GetClock_RealTime(realTime);
     chip::UnixEpochToChipEpochTime((uint32_t)(utcTime / chip::kMicrosecondsPerSecond), utcTimetoChipEpoch);
-    ChipLogProgress(Zcl, "UTC ChipEpoch Time: %u Last Known Good Time: %u Real Time: %llu", utcTimetoChipEpoch,
-                    lastKnownGoodChipEpoch.count(), realTime.count());
 
     VerifyOrReturnValue(Server::GetInstance().GetFabricTable().SetLastKnownGoodChipEpochTime(
                             System::Clock::Seconds32(utcTimetoChipEpoch)) == CHIP_NO_ERROR,
@@ -474,7 +472,6 @@ static bool utcTimeChanged(uint64_t utcTime)
 
     Server::GetInstance().GetFabricTable().GetLastKnownGoodChipEpochTime(lastKnownGoodChipEpoch);
     System::SystemClock().GetClock_RealTime(realTime);
-    ChipLogProgress(Zcl, " Last Known Good Time: %u Real Time: %llu", lastKnownGoodChipEpoch.count(), realTime.count());
     return true;
 }
 
