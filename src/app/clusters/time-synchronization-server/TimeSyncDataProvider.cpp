@@ -125,7 +125,7 @@ CHIP_ERROR TimeSyncDataProvider::LoadTimeZone(TimeZone & timeZoneList, uint8_t &
     ReturnErrorOnFailure(reader.Next(TLV::TLVType::kTLVType_Array, TLV::AnonymousTag()));
     ReturnErrorOnFailure(reader.EnterContainer(outerType));
     auto tz  = timeZoneList.begin();
-    size_t i = 0;
+    uint8_t i = 0;
 
     while (reader.Next() != CHIP_ERROR_END_OF_TLV && i < timeZoneList.size())
     {
@@ -189,7 +189,7 @@ CHIP_ERROR TimeSyncDataProvider::LoadDSTOffset(DSTOffset & dstOffsetList, uint8_
     ReturnErrorOnFailure(reader.Next(TLV::TLVType::kTLVType_Array, TLV::AnonymousTag()));
     ReturnErrorOnFailure(reader.EnterContainer(outerType));
     auto dst = dstOffsetList.begin();
-    size_t i = 0;
+    uint8_t i = 0;
 
     while (reader.Next() != CHIP_ERROR_END_OF_TLV && i < dstOffsetList.size())
     {
