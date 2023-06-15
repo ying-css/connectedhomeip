@@ -54,9 +54,19 @@ buildconfig_header("crypto_buildconfig") {
   if (chip_with_se05x == 1) {
     defines += [ "CHIP_CRYPTO_HSM=1" ]
     defines += [ "CHIP_CRYPTO_HSM_NXP=1" ]
-  } else {
+    defines += [ "CHIP_CRYPTO_HSM_INFINEON=0" ]
+  } 
+  else if (chip_enable_trustm == true) {
+    defines += [ "CHIP_CRYPTO_HSM=1" ]
+    defines += [ "CHIP_CRYPTO_HSM_NXP=0" ]
+    defines += [ "CHIP_CRYPTO_HSM_INFINEON=1" ]
+  }else {
     defines += [ "CHIP_CRYPTO_HSM=0" ]
     defines += [ "CHIP_CRYPTO_HSM_NXP=0" ]
+    defines += [ "CHIP_CRYPTO_HSM_INFINEON=0" ]
+  }
+  if (chip_enable_trustm_da == true) {
+    defines += [ "ENABLE_HSM_DEVICE_ATTESTATION=1" ]
   }
 
   if (chip_with_se05x_da == 1) {
@@ -172,5 +182,17 @@ static_library("crypto") {
     ]
     public_deps += [ "${chip_root}/third_party/simw-top-mini:se05x" ]
     public_configs += [ "${chip_root}/third_party/simw-top-mini:se05x_config" ]
+  }
+   if (chip_enable_trustm == true) {
+    sources += [
+      "hsm/infineon/CHIPCryptoPALHsm_trustm_HKDF.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_trustm_HMAC.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_trustm_utils.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_trustm_P256.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_trustm_PBKDF.cpp"
+    ]
+    public_deps += [ "${chip_root}/third_party/infineon/trustm:optiga-trust-m" ]
+    public_configs +=
+        [ "${chip_root}/third_party/infineon/trustm:trustm_config" ]
   }
 }

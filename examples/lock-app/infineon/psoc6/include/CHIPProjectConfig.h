@@ -35,7 +35,7 @@
 #define CHIP_DEVICE_CONFIG_USE_TEST_SETUP_DISCRIMINATOR 0xF00
 
 /* The ProductID attribute of the Basic cluster. */
-#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID 0x8006
+#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID 0x8001
 
 /* The ProductName attribute of the Basic cluster. */
 #define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_NAME "P6-CYW43012 Lock"
