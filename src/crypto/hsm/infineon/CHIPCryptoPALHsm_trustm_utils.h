@@ -40,6 +40,9 @@ extern "C" {
 extern optiga_crypt_t * p_local_crypt;
 extern optiga_util_t * p_local_util;
 
+#define TRUSTM_HKDF_OID_KEY         (0xF1D0)
+#define TRUSTM_HMAC_OID_KEY         (0xF1D4)
+
 /* Open session to trustm */
 void trustm_Open(void);
 void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t * cert_pem_length);

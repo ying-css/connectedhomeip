@@ -121,9 +121,6 @@ void trustm_Open(void)
         optiga_lib_status_t return_status;
         do
         {
-            printf("==================================================\r\n");
-            printf("trustm open \r\n");
-            printf("==================================================\r\n");
             /**
              * 1. Create OPTIGA Crypt Instance
              */

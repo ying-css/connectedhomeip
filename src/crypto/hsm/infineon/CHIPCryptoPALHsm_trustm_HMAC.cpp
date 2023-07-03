@@ -55,8 +55,6 @@ CHIP_ERROR HMAC_shaHSM::HMAC_SHA256(const uint8_t * key, size_t key_length,
     uint32_t message_length_u32 = static_cast<uint32_t>(message_length);
     uint32_t out_length_u32 = static_cast<uint32_t>(out_length);
 
-    printf("==================== HSM HMAC ================== \n");
-
     if (key_length > 64)
     {
         return HMAC_sha::HMAC_SHA256(key, key_length, message, message_length, out_buffer, out_length);
@@ -72,9 +70,9 @@ CHIP_ERROR HMAC_shaHSM::HMAC_SHA256(const uint8_t * key, size_t key_length,
     // Trust M init
     trustm_Open();
     // Write metada for secret OID
-    write_metadata(0xf1d4, metadata_hmac, sizeof(metadata_hmac));
-    // Update the secret key to 0XF1D4
-    write_data(0xf1d4, key, (uint16_t)key_length);
+    write_metadata(TRUSTM_HMAC_OID_KEY, metadata_hmac, sizeof(metadata_hmac));
+    // Update the secret key
+    write_data(TRUSTM_HMAC_OID_KEY, key, (uint16_t)key_length);
 
     // Start HMAC operation
     return_status = OPTIGA_LIB_BUSY;

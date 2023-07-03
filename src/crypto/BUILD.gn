@@ -189,7 +189,6 @@ static_library("crypto") {
       "hsm/infineon/CHIPCryptoPALHsm_trustm_HMAC.cpp",
       "hsm/infineon/CHIPCryptoPALHsm_trustm_utils.cpp",
       "hsm/infineon/CHIPCryptoPALHsm_trustm_P256.cpp",
-      "hsm/infineon/CHIPCryptoPALHsm_trustm_PBKDF.cpp"
     ]
     public_deps += [ "${chip_root}/third_party/infineon/trustm:optiga-trust-m" ]
     public_configs +=

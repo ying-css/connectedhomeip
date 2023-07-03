@@ -75,9 +75,9 @@ size_t out_length)
     // Trust M init
     trustm_Open();
     // Write metada
-    write_metadata(0xf1d0, metadata, sizeof(metadata));
+    write_metadata(TRUSTM_HKDF_OID_KEY, metadata, sizeof(metadata));
     // Write the secret key
-    write_data(0xf1d0, secret, (uint16_t)secret_length);
+    write_data(TRUSTM_HKDF_OID_KEY, secret, (uint16_t)secret_length);
 
     return_status = OPTIGA_LIB_BUSY;
 
