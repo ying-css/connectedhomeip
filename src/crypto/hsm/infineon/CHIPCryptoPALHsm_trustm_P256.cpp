@@ -31,40 +31,13 @@
 
 #define NIST256_HEADER_OFFSET 26
 
-/* Used for CSR generation */
-// Organisation info.
-#define SUBJECT_STR "CSR"
-#define ASN1_BIT_STRING 0x03
-#define ASN1_NULL 0x05
-#define ASN1_OID 0x06
-#define ASN1_SEQUENCE 0x10
-#define ASN1_SET 0x11
-#define ASN1_UTF8_STRING 0x0C
-#define ASN1_CONSTRUCTED 0x20
-#define ASN1_CONTEXT_SPECIFIC 0x80
-
-const uint8_t kTlvHeader = 2;
-
 #if ENABLE_HSM_GENERATE_EC_KEY
 namespace chip {
 namespace Crypto {
 
 // ToDo: Add later
-P256KeypairHSM::~P256KeypairHSM(){
-    if (keyid != 0)
-    {
-        if (!provisioned_key)
-        {
-            //ToDo: Add the method for key delete
-            // trustm_delete_key(keyid);
-        }
-        else
-        {
-            ChipLogDetail(Crypto, "Provisioned key! Not deleting key in HSM");
-        }
-    }
+P256KeypairHSM::~P256KeypairHSM(){}
 
-}
 CHIP_ERROR P256KeypairHSM::Initialize()
 {
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
@@ -86,7 +59,8 @@ CHIP_ERROR P256KeypairHSM::Initialize()
     {
         // Trust M ECC 256 Key Gen
         ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
-        return_status = trustm_ecc_keygen(0xE0F2, 0x31, OPTIGA_ECC_CURVE_NIST_P_256, pubkey,(uint16_t)pubKeyLen); 
+        uint8_t key_usgae = (optiga_key_usage_t)( OPTIGA_KEY_USAGE_KEY_AGREEMENT | OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION );
+        return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usgae, OPTIGA_ECC_CURVE_NIST_P_256, pubkey,(uint16_t)pubKeyLen); 
         VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
     }
     else
@@ -226,20 +200,16 @@ CHIP_ERROR P256KeypairHSM::Serialize(P256SerializedKeypair & output) const
         0,
     };
 
-    {
-        /* Set the public key */
-        P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
-        bbuf.Put(Uint8::to_uchar(public_key), public_key.Length());
-    }
+    /* Set the public key */
+    P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
+    bbuf.Put(Uint8::to_uchar(public_key), public_key.Length());
 
     VerifyOrReturnError(bbuf.Available() == sizeof(privkey), CHIP_ERROR_INTERNAL);
     VerifyOrReturnError(sizeof(privkey) >= 4, CHIP_ERROR_INTERNAL);
 
-    {
-        /* When HSM is used for ECC key generation, store key info in private key buffer */
-        Encoding::LittleEndian::BufferWriter privkey_bbuf(privkey, sizeof(privkey));
-        privkey_bbuf.Put32(keyid);
-    }
+    /* When HSM is used for ECC key generation, store key info in private key buffer */
+    Encoding::LittleEndian::BufferWriter privkey_bbuf(privkey, sizeof(privkey));
+    privkey_bbuf.Put32(keyid);
 
     bbuf.Put(privkey, sizeof(privkey));
     VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_BUFFER_TOO_SMALL);
@@ -260,12 +230,11 @@ CHIP_ERROR P256KeypairHSM::Deserialize(P256SerializedKeypair & input)
 
     /* Set private key info */
     VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_NO_MEMORY);
-    {
-        /* When HSM is used for ECC key generation, key info in stored in private key buffer */
-        const uint8_t * privkey = input.ConstBytes() + public_key.Length();
-        keyid                   = Encoding::LittleEndian::Get32(privkey);
-        public_key.SetPublicKeyId(keyid);
-    }
+
+    /* When HSM is used for ECC key generation, key info in stored in private key buffer */
+    const uint8_t * privkey = input.ConstBytes() + public_key.Length();
+    keyid                   = Encoding::LittleEndian::Get32(privkey);
+    public_key.SetPublicKeyId(keyid);
 
     return CHIP_NO_ERROR;
 }
