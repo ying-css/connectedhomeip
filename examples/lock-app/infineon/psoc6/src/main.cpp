@@ -38,13 +38,8 @@
 #include "init_psoc6Platform.h"
 #include <app/server/Server.h>
 
-
 #define MAIN_TASK_STACK_SIZE (4096)
 #define MAIN_TASK_PRIORITY 2
-
-#if CHIP_CRYPTO_HSM
-#include <crypto/hsm/CHIPCryptoPALHsm.h>
-#endif
 
 using namespace ::chip;
 using namespace ::chip::Inet;
@@ -68,14 +63,6 @@ void appError(CHIP_ERROR error)
 {
     appError(static_cast<int>(error.AsInteger()));
 }
-
-// ================================================================================
-// FreeRTOS Callbacks
-// ================================================================================
-//extern "C" void vApplicationIdleHook(void)
-//{
-    // FreeRTOS Idle callback
-//}
 
 extern "C" void vApplicationDaemonTaskStartupHook()
 {
@@ -141,7 +128,7 @@ int main(void)
 #endif
 
     P6_LOG("==================================================\r\n");
-    P6_LOG("chip-p6-trustm-lock-example starting Version %d\r\n", CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION);
+    P6_LOG("chip-p6-lock-example starting Version %d\r\n", CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION);
     P6_LOG("==================================================\r\n");
 
     /* Start the FreeRTOS scheduler */
