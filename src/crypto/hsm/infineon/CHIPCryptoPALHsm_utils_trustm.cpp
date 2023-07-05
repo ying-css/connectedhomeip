@@ -162,7 +162,7 @@ void trustm_Open(void)
                     break;
                 }
 
-                printf("trustm open application successful \r\n");	
+                // printf("trustm open application successful \r\n");	
 
         }while(0);
 
@@ -476,7 +476,6 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
             // Calculate HMAC in multiple steps
             uint32_t dataLenTemp = 0;
             uint32_t remainingLen = input_data_length;
-            printf("HMAC Start\n");
             // Start the HMAC Operation
             return_status = optiga_crypt_hmac_start(p_local_crypt,
                                                     type,
@@ -499,7 +498,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
                 if (remainingLen > MAX_MAC_DATA_LEN)
                 {
                     return_status = OPTIGA_LIB_BUSY;
-                    printf("HMAC Update\n");
+                    // printf("HMAC Update\n");
                     // Continue HMAC operation on input data
                     return_status = optiga_crypt_hmac_update(p_local_crypt,
                                                             (input_data + (input_data_length - remainingLen)),
@@ -516,7 +515,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
                 else
                 {
                     // End HMAC sequence and return the MAC generated
-                    printf("HMAC Finalize\n");
+                    // printf("HMAC Finalize\n");
                     return_status = OPTIGA_LIB_BUSY;
                     return_status = optiga_crypt_hmac_finalize(p_local_crypt,
                                                                 (input_data+(input_data_length - remainingLen)),
@@ -543,7 +542,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
                                         input_data_length,
                                         mac,
                                         mac_length);
-    printf("Output Length %ld Input Length %ld \n", *mac_length, input_data_length);
+    // printf("Output Length %ld Input Length %ld \n", *mac_length, input_data_length);
     if (OPTIGA_LIB_SUCCESS != return_status)
     {
         //optiga_crypt_hmac api returns error !!!

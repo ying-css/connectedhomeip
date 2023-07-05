@@ -132,7 +132,7 @@ extern "C" {
     /** @brief Macro to enable logger for Crypt service */
     //#define OPTIGA_LIB_ENABLE_CRYPT_LOGGING
     /** @brief Macro to enable logger for Command layer */
-    #define OPTIGA_LIB_ENABLE_CMD_LOGGING
+    // #define OPTIGA_LIB_ENABLE_CMD_LOGGING
     /** @brief Macro to enable logger for Communication layer */
     //#define OPTIGA_LIB_ENABLE_COMMS_LOGGING
 #endif
