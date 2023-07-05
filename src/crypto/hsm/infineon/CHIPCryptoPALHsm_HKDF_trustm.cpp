@@ -22,7 +22,7 @@
 * chip crypto apis use either HSM or rollback to software implementation.
 */
 
-#include "CHIPCryptoPALHsm_trustm_utils.h"
+#include "CHIPCryptoPALHsm_utils_trustm.h"
 #include <lib/core/CHIPEncoding.h>
 #include "optiga_crypt.h"
 #include "optiga/optiga_util.h"
@@ -54,6 +54,7 @@ size_t out_length)
     uint16_t salt_length_u16 = static_cast<uint16_t>(salt_length);
     uint16_t info_length_u16 = static_cast<uint16_t>(info_length);
     uint16_t out_length_u16 = static_cast<uint16_t>(out_length);
+    uint16_t secret_length_u16 = static_cast<uint16_t>(secret_length);
 
     if (salt_length > 64 || info_length > 80 || secret_length > 256 || out_length > 768)
     {
@@ -77,7 +78,7 @@ size_t out_length)
     // Write metada
     write_metadata(TRUSTM_HKDF_OID_KEY, metadata, sizeof(metadata));
     // Write the secret key
-    write_data(TRUSTM_HKDF_OID_KEY, secret, (uint16_t)secret_length);
+    write_data(TRUSTM_HKDF_OID_KEY, secret, secret_length_u16);
 
     return_status = OPTIGA_LIB_BUSY;
 

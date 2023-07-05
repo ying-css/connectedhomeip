@@ -22,7 +22,7 @@
 * chip crypto apis use either HSM or rollback to software implementation.
 */
 
-#include "CHIPCryptoPALHsm_trustm_utils.h"
+#include "CHIPCryptoPALHsm_utils_trustm.h"
 #include <lib/core/CHIPEncoding.h>
 #include "optiga_crypt.h"
 #include "optiga/optiga_util.h"
@@ -35,7 +35,6 @@
 namespace chip {
 namespace Crypto {
 
-// ToDo: Add later
 P256KeypairHSM::~P256KeypairHSM(){}
 
 CHIP_ERROR P256KeypairHSM::Initialize()
@@ -60,24 +59,22 @@ CHIP_ERROR P256KeypairHSM::Initialize()
         // Trust M ECC 256 Key Gen
         ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
         uint8_t key_usgae = (optiga_key_usage_t)( OPTIGA_KEY_USAGE_KEY_AGREEMENT | OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION );
-        return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usgae, OPTIGA_ECC_CURVE_NIST_P_256, pubkey,(uint16_t)pubKeyLen); 
+        return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usgae, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen); 
         VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
     }
     else
     {
         //Read out the public Key stored
         ChipLogDetail(Crypto, "Provisioned_key - %lx !", keyid);
-        trustmGetKey(0xF1D8,pubkey,&pubKeyLen); 
+        trustmGetKey(TRUSTM_P256_PUBKEY_OID_KEY,pubkey,&pubKeyLen); 
 
-        //VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
-        {
-            /* Set the public key */
-            P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
-            VerifyOrReturnError((size_t)pubKeyLen > NIST256_HEADER_OFFSET, CHIP_ERROR_INTERNAL);
-            VerifyOrReturnError(((size_t)pubKeyLen - NIST256_HEADER_OFFSET) <= kP256_PublicKey_Length, CHIP_ERROR_INTERNAL);
-            memcpy((void *) Uint8::to_const_uchar(public_key), pubkey, pubKeyLen);
-            public_key.SetPublicKeyId(keyid);
-        }
+        /* Set the public key */
+        P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
+        VerifyOrReturnError((size_t)pubKeyLen > NIST256_HEADER_OFFSET, CHIP_ERROR_INTERNAL);
+        VerifyOrReturnError(((size_t)pubKeyLen - NIST256_HEADER_OFFSET) <= kP256_PublicKey_Length, CHIP_ERROR_INTERNAL);
+        memcpy((void *) Uint8::to_const_uchar(public_key), pubkey, pubKeyLen);
+        public_key.SetPublicKeyId(keyid);
+    
     } 
     error = CHIP_NO_ERROR;
     exit:
@@ -95,13 +92,14 @@ CHIP_ERROR P256KeypairHSM::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length
     uint16_t signature_trustm_len = (uint16_t) kMax_ECDSA_Signature_Length_Der;
     uint8_t digest[32];
     uint8_t digest_length =sizeof(digest);
+    
     memset(&digest[0], 0, sizeof(digest));
     MutableByteSpan out_raw_sig_span(out_signature.Bytes(), out_signature.Capacity());
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
 
     VerifyOrReturnError(msg != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(msg_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
-    //VerifyOrReturnError(out_signature != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrReturnError(out_signature != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
 
     // Trust M Init
     trustm_Open();
@@ -133,27 +131,8 @@ CHIP_ERROR P256KeypairHSM::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length
 
 CHIP_ERROR P256KeypairHSM::ECDH_derive_secret(const P256PublicKey & remote_public_key, P256ECDHDerivedSecret & out_secret) const
 {
-    CHIP_ERROR error = CHIP_ERROR_INTERNAL;
-    optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
-    size_t secret_length = (out_secret.Length() == 0) ? out_secret.Capacity() : out_secret.Length();
-
-    //VerifyOrReturnError(keyid != kKeyId_NotInitialized, CHIP_ERROR_HSM);
-    ChipLogDetail(Crypto, "ECDH_derive_secret: Using TrustM for ECDH !");
-    trustm_Open();
-
-    const uint8_t * const pubKey = Uint8::to_const_uchar(remote_public_key);
-    const size_t pubKeyLen       = remote_public_key.Length();
-    return_status = trustm_ecdh_derive_secret(OPTIGA_KEY_ID_E0F3, (uint8_t *)pubKey, (uint16_t)pubKeyLen, 
-                        out_secret.Bytes(), (uint8_t)secret_length);
- 
-    VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL) ;
-
-    exit:
-        if (error != CHIP_NO_ERROR)
-        {
-            trustm_close();
-        }
-        return out_secret.SetLength(secret_length);
+    // Use the software based one 
+    return P256Keypair::ECDH_derive_secret(remote_public_key, out_secret);
 }
 
 CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_hash_signature(const uint8_t * hash, size_t hash_length,
@@ -164,6 +143,9 @@ CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_hash_signature(const uint8_t * hash,
     uint8_t signature_trustm[kMax_ECDSA_Signature_Length_Der] = {0};
     size_t signature_trustm_len = sizeof(signature_trustm);
     MutableByteSpan out_der_sig_span(signature_trustm, signature_trustm_len);
+
+    uint8_t hash_length_u8 = static_cast<uint8_t>(hash_length);
+    uint16_t signature_trustm_len_u16 = static_cast<uint16_t>(signature_trustm_len);
 
     VerifyOrReturnError(hash != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(hash_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
@@ -179,8 +161,8 @@ CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_hash_signature(const uint8_t * hash,
     // P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
     signature_trustm_len = out_der_sig_span.size();
     // ECC verify
-    return_status = trustm_ecdsa_verify((uint8_t *)hash, (uint8_t)hash_length, (uint8_t *) signature_trustm,
-                        (uint16_t)signature_trustm_len, (uint8_t *) bytes, (uint8_t)kP256_PublicKey_Length);
+    return_status = trustm_ecdsa_verify((uint8_t *)hash, hash_length_u8, (uint8_t *) signature_trustm,
+                        signature_trustm_len_u16, (uint8_t *) bytes, (uint8_t)kP256_PublicKey_Length);
 
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
                          
@@ -249,7 +231,8 @@ CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_msg_signature(const uint8_t * msg, s
     uint8_t digest_length =sizeof(digest);
     MutableByteSpan out_der_sig_span(signature_trustm, signature_trustm_len);
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
-
+    uint16_t signature_trustm_len_u16 = static_cast<uint16_t>(signature_trustm_len);
+    
     VerifyOrReturnError(msg != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(msg_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
 
@@ -270,7 +253,7 @@ CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_msg_signature(const uint8_t * msg, s
     Hash_SHA256(msg, msg_length, &digest[0]);
     // ECC verify
     return_status = trustm_ecdsa_verify(digest, digest_length, (uint8_t *) signature_trustm,
-                        (uint16_t)signature_trustm_len, (uint8_t *) bytes, (uint8_t)kP256_PublicKey_Length);
+                        signature_trustm_len_u16, (uint8_t *) bytes, (uint8_t)kP256_PublicKey_Length);
 
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
                          

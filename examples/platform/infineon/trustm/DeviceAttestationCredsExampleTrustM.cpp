@@ -14,7 +14,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#include "DeviceAttestationTrustMCredsExample.h"
+#include "DeviceAttestationCredsExampleTrustM.h"
 
 #include <credentials/examples/ExampleDACs.h>
 #include <credentials/examples/ExamplePAI.h>
@@ -29,7 +29,7 @@
 
 #ifdef ENABLE_HSM_DEVICE_ATTESTATION
 
-#include <crypto/hsm/infineon/CHIPCryptoPALHsm_trustm_utils.h>
+#include <crypto/hsm/infineon/CHIPCryptoPALHsm_utils_trustm.h>
 
 /* Device attestation key ids for Trust M */
 #define DEV_ATTESTATION_KEY_ID 0xE0F0
@@ -126,7 +126,16 @@ CHIP_ERROR ExampleTrustMDACProvider::GetCertificationDeclaration(MutableByteSpan
 #else
     size_t buflen = out_cd_buffer.size();
     ChipLogDetail(Crypto, "Get certificate declaration from trustm");
-    ReturnErrorOnFailure(trustmGetCertificate(CERT_DECLARATION_ID, out_cd_buffer.data(), &buflen));
+    ReturnErrorOnFailure(trustmGetCertificate(CERT_DECLARATION_ID, out_cd_buffer.data(), (uint16_t *)&buflen));
+    for (int i=0; i< (int)buflen; i++)
+    {
+        printf(" %X ", out_cd_buffer.data()[i]);
+        if (i != 0 && i%8 == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n");
     out_cd_buffer.reduce_size(buflen);
     return CHIP_NO_ERROR;
 #endif    

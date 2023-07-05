@@ -185,10 +185,10 @@ static_library("crypto") {
   }
    if (chip_enable_trustm == true) {
     sources += [
-      "hsm/infineon/CHIPCryptoPALHsm_trustm_HKDF.cpp",
-      "hsm/infineon/CHIPCryptoPALHsm_trustm_HMAC.cpp",
-      "hsm/infineon/CHIPCryptoPALHsm_trustm_utils.cpp",
-      "hsm/infineon/CHIPCryptoPALHsm_trustm_P256.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_HKDF_trustm.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_HMAC_trustm.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_utils_trustm.cpp",
+      "hsm/infineon/CHIPCryptoPALHsm_P256_trustm.cpp",
     ]
     public_deps += [ "${chip_root}/third_party/infineon/trustm:optiga-trust-m" ]
     public_configs +=

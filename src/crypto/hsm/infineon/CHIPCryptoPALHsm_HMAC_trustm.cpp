@@ -22,7 +22,7 @@
  *      chip crypto apis use either HSM or rollback to software implementation.
  */
 
-#include "CHIPCryptoPALHsm_trustm_utils.h"
+#include "CHIPCryptoPALHsm_utils_trustm.h"
 #include <lib/core/CHIPEncoding.h>
 #include "optiga_crypt.h"
 #include "optiga/optiga_util.h"
@@ -51,7 +51,7 @@ CHIP_ERROR HMAC_shaHSM::HMAC_SHA256(const uint8_t * key, size_t key_length,
     CHIP_ERROR error       = CHIP_ERROR_INTERNAL;
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
 
-    //uint16_t key_length_u16 = static_cast<uint16_t>(key_length) ;
+    uint16_t key_length_u16 = static_cast<uint16_t>(key_length) ;
     uint32_t message_length_u32 = static_cast<uint32_t>(message_length);
     uint32_t out_length_u32 = static_cast<uint32_t>(out_length);
 
@@ -72,7 +72,7 @@ CHIP_ERROR HMAC_shaHSM::HMAC_SHA256(const uint8_t * key, size_t key_length,
     // Write metada for secret OID
     write_metadata(TRUSTM_HMAC_OID_KEY, metadata_hmac, sizeof(metadata_hmac));
     // Update the secret key
-    write_data(TRUSTM_HMAC_OID_KEY, key, (uint16_t)key_length);
+    write_data(TRUSTM_HMAC_OID_KEY, key, key_length_u16;
 
     // Start HMAC operation
     return_status = OPTIGA_LIB_BUSY;

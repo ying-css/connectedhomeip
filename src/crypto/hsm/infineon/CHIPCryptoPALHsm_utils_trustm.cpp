@@ -34,8 +34,8 @@
 #include "mbedtls/base64.h"
 #include <FreeRTOS.h>
 #include "pal_os_memory.h"
+#include "CHIPCryptoPALHsm_utils_trustm.h"
 
-#include "CHIPCryptoPALHsm_trustm_utils.h"
 optiga_crypt_t * p_local_crypt = NULL;
 optiga_util_t * p_local_util = NULL;
 static bool trustm_isOpen = false;
@@ -44,7 +44,7 @@ static bool trustm_isOpen = false;
 #define OPTIGA_UTIL_DER_NUM_UNUSED_BITS             (0x00)
 
 #if ENABLE_HMAC_MULTI_STEP
-#define MAX_MAC_DATA_LEN 900
+#define MAX_MAC_DATA_LEN 640
 #endif
 
 // ================================================================================
@@ -407,7 +407,7 @@ optiga_lib_status_t deriveKey_HKDF(const uint8_t *salt, uint16_t salt_length, co
         optiga_lib_status = OPTIGA_LIB_BUSY;
         return_status = optiga_crypt_hkdf(p_local_crypt,
                                OPTIGA_HKDF_SHA_256,
-                               0xF1D0, /* Input secret OID */
+                               TRUSTM_HKDF_OID_KEY, /* Input secret OID */
                                salt,
                                salt_length,
                                info,
@@ -459,7 +459,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
         {
             return_status = optiga_crypt_hmac(p_local_crypt,
                                                 type,
-                                                0xF1D4,
+                                                TRUSTM_HMAC_OID_KEY,
                                                 input_data,
                                                 input_data_length,
                                                 mac,
@@ -480,7 +480,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
             // Start the HMAC Operation
             return_status = optiga_crypt_hmac_start(p_local_crypt,
                                                     type,
-                                                    0xF1D4,
+                                                    TRUSTM_HMAC_OID_KEY,
                                                     input_data,
                                                     MAX_MAC_DATA_LEN);
 
@@ -538,7 +538,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t *input_da
     
     return_status = optiga_crypt_hmac(p_local_crypt,
                                         type,
-                                        0xF1D4,
+                                        TRUSTM_HMAC_OID_KEY,
                                         input_data,
                                         input_data_length,
                                         mac,
@@ -914,7 +914,7 @@ optiga_lib_status_t trustm_PBKDF2_HMAC(const unsigned char *salt, size_t slen, u
         // Calculate U1, U1 ends up in work
          return_status = optiga_crypt_hmac(p_local_crypt,
                                         OPTIGA_HMAC_SHA_256,
-                                        0xF1D4,
+                                        TRUSTM_HMAC_OID_KEY,
                                         salt,
                                         (uint32_t)slen,
                                         work,
@@ -932,7 +932,7 @@ optiga_lib_status_t trustm_PBKDF2_HMAC(const unsigned char *salt, size_t slen, u
             // Calculated subsequent U, which ends up in md1
             return_status = optiga_crypt_hmac(p_local_crypt,
                                         OPTIGA_HMAC_SHA_256,
-                                        0xF1D4,
+                                        TRUSTM_HMAC_OID_KEY,
                                         md1,
                                         md1_len,
                                         md1,

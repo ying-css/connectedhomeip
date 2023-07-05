@@ -55,7 +55,7 @@
 #endif
 
 #ifdef ENABLE_HSM_DEVICE_ATTESTATION
-#include "DeviceAttestationTrustMCredsExample.h"
+#include "DeviceAttestationCredsExampleTrustM.h"
 #endif
 
 /* OTA related includes */
