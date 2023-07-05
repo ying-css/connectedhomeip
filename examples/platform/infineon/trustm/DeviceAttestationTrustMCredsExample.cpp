@@ -32,8 +32,9 @@
 #include <crypto/hsm/infineon/CHIPCryptoPALHsm_trustm_utils.h>
 
 /* Device attestation key ids for Trust M */
-#define DEV_ATTESTATION_KEY_ID 0xE0F3
+#define DEV_ATTESTATION_KEY_ID 0xE0F0
 #define DEV_ATTESTATION_CERT_ID 0xE0E3
+#define CERT_DECLARATION_ID 0xE0E9
 
 namespace chip {
 namespace Credentials {
@@ -88,6 +89,7 @@ CHIP_ERROR ExampleTrustMDACProvider::GetCertificationDeclaration(MutableByteSpan
     //-> certification_type = 0
     //-> dac_origin_vendor_id is not present
     //-> dac_origin_product_id is not present
+#if 0   
     const uint8_t kCdForAllExamples[541] = {
         0x30, 0x82, 0x02, 0x19, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x07, 0x02, 0xa0, 0x82, 0x02, 0x0a, 0x30,
         0x82, 0x02, 0x06, 0x02, 0x01, 0x03, 0x31, 0x0d, 0x30, 0x0b, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02,
@@ -120,6 +122,14 @@ CHIP_ERROR ExampleTrustMDACProvider::GetCertificationDeclaration(MutableByteSpan
     };
 
     return CopySpanToMutableSpan(ByteSpan{ kCdForAllExamples }, out_cd_buffer);
+
+#else
+    size_t buflen = out_cd_buffer.size();
+    ChipLogDetail(Crypto, "Get certificate declaration from trustm");
+    ReturnErrorOnFailure(trustmGetCertificate(CERT_DECLARATION_ID, out_cd_buffer.data(), &buflen));
+    out_cd_buffer.reduce_size(buflen);
+    return CHIP_NO_ERROR;
+#endif    
 }
 
 CHIP_ERROR ExampleTrustMDACProvider::GetFirmwareInformation(MutableByteSpan & out_firmware_info_buffer)

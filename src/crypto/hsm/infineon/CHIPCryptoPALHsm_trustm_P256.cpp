@@ -108,7 +108,7 @@ CHIP_ERROR P256KeypairHSM::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length
     //Hash to get the digest
     Hash_SHA256(msg, msg_length, &digest[0]);
     // Api call to calculate the signature
-    return_status = trustm_ecdsa_sign(OPTIGA_KEY_ID_E0F3, digest, digest_length, 
+    return_status = trustm_ecdsa_sign(OPTIGA_KEY_ID_E0F0, digest, digest_length, 
                         signature_trustm, &signature_trustm_len);
     
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL) ;
