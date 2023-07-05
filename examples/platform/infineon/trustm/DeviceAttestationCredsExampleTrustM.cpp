@@ -127,15 +127,6 @@ CHIP_ERROR ExampleTrustMDACProvider::GetCertificationDeclaration(MutableByteSpan
     size_t buflen = out_cd_buffer.size();
     ChipLogDetail(Crypto, "Get certificate declaration from trustm");
     ReturnErrorOnFailure(trustmGetCertificate(CERT_DECLARATION_ID, out_cd_buffer.data(), (uint16_t *)&buflen));
-    for (int i=0; i< (int)buflen; i++)
-    {
-        printf(" %X ", out_cd_buffer.data()[i]);
-        if (i != 0 && i%8 == 0)
-        {
-            printf("\n");
-        }
-    }
-    printf("\n");
     out_cd_buffer.reduce_size(buflen);
     return CHIP_NO_ERROR;
 #endif    
