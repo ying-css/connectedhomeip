@@ -34,7 +34,8 @@
 /* Device attestation key ids for Trust M */
 #define DEV_ATTESTATION_KEY_ID 0xE0F0
 #define DEV_ATTESTATION_CERT_ID 0xE0E3
-#define CERT_DECLARATION_ID 0xE0E9
+#define PAI_CERT_ID 0xE0E8
+#define CERT_DECLARATION_ID 0xF1E0
 
 namespace chip {
 namespace Credentials {
@@ -58,7 +59,7 @@ CHIP_ERROR ExampleTrustMDACProvider::GetDeviceAttestationCert(MutableByteSpan & 
     return CopySpanToMutableSpan(DevelopmentCerts::kDacCert, out_dac_buffer);
 #else
     uint16_t buflen = (uint16_t) out_dac_buffer.size();
-    ChipLogDetail(Crypto, "Get certificate from trustm");
+    ChipLogDetail(Crypto, "Get DAC certificate from trustm");
     ReturnErrorOnFailure(trustmGetCertificate(DEV_ATTESTATION_CERT_ID, out_dac_buffer.data(), &buflen));
     out_dac_buffer.reduce_size(buflen);
     return CHIP_NO_ERROR;
@@ -67,7 +68,15 @@ CHIP_ERROR ExampleTrustMDACProvider::GetDeviceAttestationCert(MutableByteSpan & 
 
 CHIP_ERROR ExampleTrustMDACProvider::GetProductAttestationIntermediateCert(MutableByteSpan & out_pai_buffer)
 {
+#if 0   
     return CopySpanToMutableSpan(ByteSpan(DevelopmentCerts::kPaiCert), out_pai_buffer);
+#else
+    uint16_t buflen = (uint16_t) out_pai_buffer.size();
+    ChipLogDetail(Crypto, "Get PAI certificate from trustm");
+    ReturnErrorOnFailure(trustmGetCertificate(PAI_CERT_ID, out_pai_buffer.data(), &buflen));
+    out_pai_buffer.reduce_size(buflen);
+    return CHIP_NO_ERROR;
+#endif   
 }
 
 CHIP_ERROR ExampleTrustMDACProvider::GetCertificationDeclaration(MutableByteSpan & out_cd_buffer)
