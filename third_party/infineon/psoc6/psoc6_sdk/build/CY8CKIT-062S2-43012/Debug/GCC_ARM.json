@@ -194,6 +194,7 @@
         "-DMBEDTLS_USER_CONFIG_FILE=<mbedtls_user_config.h>",
         "-DCYBSP_WIFI_CAPABLE",
         "-DCY_RETARGET_IO_CONVERT_LF_TO_CRLF",
+        "-DCY_CRYPTO_HAL_DISABLE",
         "-DCY_RTOS_AWARE",
         "-DPSOC_062_2M",
         "-DCY_USING_HAL",
@@ -219,8 +220,11 @@
         "-DCOMPONENT_RTOS_AWARE",
         "-DCOMPONENT_SOFTFP",
         "-DCOMPONENT_WICED_BLE",
+        "-DCOMPONENT_SECURE_SOCKETS",
+        "-DCOMPONENT_PSOC6_FREERTOS",
         "-DDEBUG",
-        "-DCY_SUPPORTS_DEVICE_VALIDATION"
+        "-DCY_SUPPORTS_DEVICE_VALIDATION",
+        "-DOPTIGA_LIB_EXTERNAL=<optiga_lib_config_mtb.h>"
     ],
     "c_source": [
         "./libs/abstraction-rtos/source/cy_worker_thread.c",

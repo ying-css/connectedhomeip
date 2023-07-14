@@ -79,6 +79,8 @@ class InfineonBuilder(GnBuilder):
                  runner,
                  app: InfineonApp = InfineonApp.LOCK,
                  board: InfineonBoard = InfineonBoard.PSOC6BOARD,
+                 enable_trustm: bool = False,
+                 enable_trustm_da: bool = False,
                  enable_ota_requestor: bool = False,
                  update_image: bool = False):
         super(InfineonBuilder, self).__init__(
@@ -92,6 +94,10 @@ class InfineonBuilder(GnBuilder):
             self.extra_gn_options.append('chip_enable_ota_requestor=true')
         if update_image:
             self.extra_gn_options.append('build_update_image=true')
+        if enable_trustm:
+            self.extra_gn_options.append('chip_with_trustm=true')
+        if enable_trustm_da:
+            self.extra_gn_options.append('chip_with_trustm_da=true')
 
     def GnBuildArgs(self):
         return self.extra_gn_options

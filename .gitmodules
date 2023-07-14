@@ -288,4 +288,7 @@
         url = https://github.com/bouffalolab/bl_iot_sdk_tiny.git
         branch = master
         platforms = bouffalolab
-
+[submodule "third_party/infineon/trustm/optiga-trust-m"]
+	path = third_party/infineon/trustm/optiga-trust-m
+	url = https://github.com/Infineon/optiga-trust-m.git
+	branch = develop
