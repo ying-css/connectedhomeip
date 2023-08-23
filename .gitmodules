@@ -323,3 +323,8 @@
 	url = https://github.com/SiliconLabs/wiseconnect
 	branch = master
 	platforms = efr32
+[submodule "third_party/infineon/trustm/optiga-trust-m"]
+	path = third_party/infineon/trustm/optiga-trust-m
+	url = https://github.com/Infineon/optiga-trust-m
+	branch = matter_support
+	platforms = infineon
