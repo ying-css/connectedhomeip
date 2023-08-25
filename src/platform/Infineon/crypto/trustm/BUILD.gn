@@ -16,7 +16,6 @@ import("//build_overrides/chip.gni")
 import("//build_overrides/nlassert.gni")
 import("${chip_root}/build/chip/buildconfig_header.gni")
 import("${chip_root}/src/crypto/crypto.gni")
-import("${chip_root}/src/platform/infineon/crypto/trustm/args.gni")
 
 if (chip_crypto == "platform") {
   import("//build_overrides/mbedtls.gni")
@@ -36,26 +35,22 @@ source_set("public_headers") {
   ]
 }
 
-static_library("infineon_crypto_lib") {
   sources = [
-    "${chip_root}/src/platform/infineon/crypto/trustm/CHIPCryptoPALHsm_HKDF_trustm.cpp",
-    "${chip_root}/src/platform/infineon/crypto/trustm/CHIPCryptoPALHsm_HMAC_trustm.cpp",
-    "${chip_root}/src/platform/infineon/crypto/trustm/CHIPCryptoPALHsm_P256_trustm.cpp",
-    "${chip_root}/src/platform/infineon/crypto/trustm/CHIPCryptoPALHsm_utils_trustm.cpp",
+    "CHIPCryptoPALHsm_HKDF_trustm.cpp",
+    "CHIPCryptoPALHsm_HMAC_trustm.cpp",
+    "CHIPCryptoPALHsm_P256_trustm.cpp",
+    "CHIPCryptoPALHsm_utils_trustm.cpp",
   ]
 
   public_deps = [ ":public_headers" ]
-  deps = [ "${chip_root}/${infineon_crypto_trutm_root}:trustm" ]
-
+  
   external_mbedtls = current_os == "zephyr"
 
   if (!external_mbedtls) {
     public_deps += [ "${mbedtls_root}:mbedtls" ]
   }
-
   include_dirs = [
     ".",
     "${chip_root}/src/crypto",
-    "${chip_root}/src/platform/infineon/crypto/trustm",
+    "${chip_root}/src/platform/Infineon/crypto/trustm",
   ]
-}
