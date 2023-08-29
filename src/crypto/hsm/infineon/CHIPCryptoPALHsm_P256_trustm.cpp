@@ -285,7 +285,16 @@ exit:
     csr_length     = (CHIP_NO_ERROR == err) ? out_csr.size() : 0;
     return err;
 }*/
-
+static void add_tlv(uint8_t * buf, size_t buf_index, uint8_t tag, size_t len, uint8_t * val)
+{
+    buf[buf_index++] = (uint8_t) tag;
+    buf[buf_index++] = (uint8_t) len;
+    if (len > 0 && val != NULL)
+    {
+        memcpy(&buf[buf_index], val, len);
+        buf_index = buf_index + len;
+    }
+}
 CHIP_ERROR P256KeypairHSM::NewCertificateSigningRequest(uint8_t * csr, size_t & csr_length) const
 {
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
