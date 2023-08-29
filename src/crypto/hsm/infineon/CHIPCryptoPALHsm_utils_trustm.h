@@ -43,6 +43,8 @@ extern optiga_util_t * p_local_util;
 #define TRUSTM_HKDF_OID_KEY (0xF1D8)
 #define TRUSTM_HMAC_OID_KEY (0xF1D9)
 #define TRUSTM_P256_PUBKEY_OID_KEY (0xF1DA)
+#define TRUSTM_NOC_OID_KEY (0xE0F2)
+
 
 /* Open session to trustm */
 void trustm_Open(void);
