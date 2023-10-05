@@ -365,6 +365,27 @@ static EntropyContext * get_entropy_context()
     return &gsEntropyContext;
 }
 
+static mbedtls_ctr_drbg_context * get_drbg_context()
+{
+    EntropyContext * const context = get_entropy_context();
+
+    mbedtls_ctr_drbg_context * const drbgCtxt = &context->mDRBGCtxt;
+
+    if (!context->mDRBGSeeded)
+    {
+        const int status = mbedtls_ctr_drbg_seed(drbgCtxt, mbedtls_entropy_func, &context->mEntropy, nullptr, 0);
+        if (status != 0)
+        {
+            _log_mbedTLS_error(status);
+            return nullptr;
+        }
+
+        context->mDRBGSeeded = true;
+    }
+
+    return drbgCtxt;
+}
+
 CHIP_ERROR add_entropy_source(entropy_source fn_source, void * p_source, size_t threshold)
 {
     VerifyOrReturnError(fn_source != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
@@ -375,6 +396,20 @@ CHIP_ERROR add_entropy_source(entropy_source fn_source, void * p_source, size_t 
     const int result =
         mbedtls_entropy_add_source(&entropy_ctxt->mEntropy, fn_source, p_source, threshold, MBEDTLS_ENTROPY_SOURCE_STRONG);
     VerifyOrReturnError(result == 0, CHIP_ERROR_INTERNAL);
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR DRBG_get_bytes(uint8_t * out_buffer, const size_t out_length)
+{
+    VerifyOrReturnError(out_buffer != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrReturnError(out_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
+
+    mbedtls_ctr_drbg_context * const drbg_ctxt = get_drbg_context();
+    VerifyOrReturnError(drbg_ctxt != nullptr, CHIP_ERROR_INTERNAL);
+
+    const int result = mbedtls_ctr_drbg_random(drbg_ctxt, Uint8::to_uchar(out_buffer), out_length);
+    VerifyOrReturnError(result == 0, CHIP_ERROR_INTERNAL);
+
     return CHIP_NO_ERROR;
 }
 
