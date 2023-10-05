@@ -41,15 +41,19 @@ static const uint8_t metadata[] = {
     0x00,
 };
 
-#if ENABLE_HSM_HKDF_SHA256
-
 namespace chip {
 namespace Crypto {
 
-CHIP_ERROR HKDF_shaHSM::HKDF_SHA256(const uint8_t * secret, const size_t secret_length, const uint8_t * salt,
+extern CHIP_ERROR HKDF_SHA256_H(const uint8_t * secret, const size_t secret_length, const uint8_t * salt, const size_t salt_length,
+                                const uint8_t * info, const size_t info_length, uint8_t * out_buffer, size_t out_length);
+
+CHIP_ERROR HKDF_sha::HKDF_SHA256(const uint8_t * secret, const size_t secret_length, const uint8_t * salt,
                                     const size_t salt_length, const uint8_t * info, const size_t info_length, uint8_t * out_buffer,
                                     size_t out_length)
 {
+#if !ENABLE_TRUSTM_HKDF_SHA256
+    return HKDF_SHA256_H(secret, secret_length, salt, salt_length, info, info_length, out_buffer, out_length);
+#else
     CHIP_ERROR error                  = CHIP_ERROR_INTERNAL;
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
 
@@ -95,8 +99,7 @@ exit:
         trustm_close();
     }
     return error;
+#endif
 }
 } // namespace Crypto
 } // namespace chip
-
-#endif //#if ENABLE_HSM_HKDF_SHA256

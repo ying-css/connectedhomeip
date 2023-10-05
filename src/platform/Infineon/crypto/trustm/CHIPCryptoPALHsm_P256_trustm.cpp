@@ -31,21 +31,48 @@
 
 #define NIST256_HEADER_OFFSET 26
 
-#if ENABLE_HSM_GENERATE_EC_KEY
 
 namespace chip {
 namespace Crypto {
 
-P256KeypairHSM::~P256KeypairHSM() {}
+extern CHIP_ERROR Initialize_H(P256Keypair * pk, P256PublicKey * mPublicKey, P256KeypairContext * mKeypair);
+extern CHIP_ERROR ECDSA_sign_msg_H(P256KeypairContext * mKeypair, const uint8_t * msg, const size_t msg_length,
+                                   P256ECDSASignature & out_signature);
+extern CHIP_ERROR ECDH_derive_secret_H(P256KeypairContext * mKeypair, const P256PublicKey & remote_public_key,
+                                       P256ECDHDerivedSecret & out_secret);
+extern CHIP_ERROR NewCertificateSigningRequest_H(P256KeypairContext * mKeypair, uint8_t * out_csr, size_t & csr_length);
+extern CHIP_ERROR Deserialize_H(P256Keypair * pk, P256PublicKey * mPublicKey, P256KeypairContext * mKeypair,
+                                P256SerializedKeypair & input);
+extern CHIP_ERROR Serialize_H(const P256KeypairContext mKeypair, const P256PublicKey mPublicKey, P256SerializedKeypair & output);
+extern CHIP_ERROR ECDSA_validate_msg_signature_H(const P256PublicKey * public_key, const uint8_t * msg, const size_t msg_length,
+                                                 const P256ECDSASignature & signature);
+extern CHIP_ERROR ECDSA_validate_hash_signature_H(const P256PublicKey * public_key, const uint8_t * hash, const size_t hash_length,
+                                                  const P256ECDSASignature & signature);
 
-CHIP_ERROR P256KeypairHSM::Initialize(ECPKeyTarget key_target)
+
+P256Keypair::~P256Keypair()
 {
-    CHIP_ERROR error                  = CHIP_ERROR_INTERNAL;
+    // TODO:Add
+}
+
+
+CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
+{
+    CHIP_ERROR error = CHIP_ERROR_INTERNAL;
+#if !ENABLE_TRUSTM_GENERATE_EC_KEY
+    if (CHIP_NO_ERROR == Initialize_H(this, &mPublicKey, &mKeypair))
+    {
+        mInitialized = true;
+    }
+    return error;
+#else
+    
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
     uint8_t pubkey[128]               = {
         0,
     };
     uint16_t pubKeyLen = sizeof(pubkey);
+    uint32_t keyid = 0;
 
     if (keyid == 0)
     {
@@ -76,16 +103,22 @@ CHIP_ERROR P256KeypairHSM::Initialize(ECPKeyTarget key_target)
         memcpy((void *) Uint8::to_const_uchar(public_key), pubkey, pubKeyLen);
         public_key.SetPublicKeyId(keyid);
     }
+    mInitialized = true;
     error = CHIP_NO_ERROR;
+
 exit:
     if (error != CHIP_NO_ERROR)
     {
         trustm_close();
     }
     return error;
+#endif
 }
-CHIP_ERROR P256KeypairHSM::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P256ECDSASignature & out_signature) const
+CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P256ECDSASignature & out_signature) const
 {
+#if !ENABLE_TRUSTM_GENERATE_EC_KEY
+    return ECDSA_sign_msg_H(&mKeypair, msg, msg_length, out_signature);
+#else
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
 
     uint8_t signature_trustm[kMax_ECDSA_Signature_Length_Der] = { 0 };
@@ -126,17 +159,21 @@ exit:
         trustm_close();
     }
     return error;
+#endif
 }
 
-CHIP_ERROR P256KeypairHSM::ECDH_derive_secret(const P256PublicKey & remote_public_key, P256ECDHDerivedSecret & out_secret) const
+CHIP_ERROR P256Keypair::ECDH_derive_secret(const P256PublicKey & remote_public_key, P256ECDHDerivedSecret & out_secret) const
 {
     // Use the software based one
-    return P256Keypair::ECDH_derive_secret(remote_public_key, out_secret);
+    return ECDH_derive_secret_H(&mKeypair, remote_public_key, out_secret);
 }
 
-CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_hash_signature(const uint8_t * hash, size_t hash_length,
+CHIP_ERROR P256PublicKey::ECDSA_validate_hash_signature(const uint8_t * hash, size_t hash_length,
                                                            const P256ECDSASignature & signature) const
 {
+#if !ENABLE_TRUSTM_ECDSA_VERIFY
+    return ECDSA_validate_hash_signature_H(this, hash, hash_length, signature);
+#else    
     CHIP_ERROR error                                          = CHIP_ERROR_INTERNAL;
     optiga_lib_status_t return_status                         = OPTIGA_LIB_BUSY;
     uint8_t signature_trustm[kMax_ECDSA_Signature_Length_Der] = { 0 };
@@ -171,58 +208,62 @@ exit:
         trustm_close();
     }
     return error;
+#endif
 }
 
-CHIP_ERROR P256KeypairHSM::Serialize(P256SerializedKeypair & output) const
+CHIP_ERROR P256Keypair::Serialize(P256SerializedKeypair & output) const
 {
-    const size_t len = output.Length() == 0 ? output.Capacity() : output.Length();
-    Encoding::BufferWriter bbuf(output.Bytes(), len);
-    uint8_t privkey[kP256_PrivateKey_Length] = {
-        0,
-    };
+    // const size_t len = output.Length() == 0 ? output.Capacity() : output.Length();
+    // Encoding::BufferWriter bbuf(output.Bytes(), len);
+    // uint8_t privkey[kP256_PrivateKey_Length] = {
+    //     0,
+    // };
 
-    /* Set the public key */
-    P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
-    bbuf.Put(Uint8::to_uchar(public_key), public_key.Length());
+    // /* Set the public key */
+    // P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
+    // bbuf.Put(Uint8::to_uchar(public_key), public_key.Length());
 
-    VerifyOrReturnError(bbuf.Available() == sizeof(privkey), CHIP_ERROR_INTERNAL);
-    VerifyOrReturnError(sizeof(privkey) >= 4, CHIP_ERROR_INTERNAL);
+    // VerifyOrReturnError(bbuf.Available() == sizeof(privkey), CHIP_ERROR_INTERNAL);
+    // VerifyOrReturnError(sizeof(privkey) >= 4, CHIP_ERROR_INTERNAL);
 
-    /* When HSM is used for ECC key generation, store key info in private key buffer */
-    Encoding::LittleEndian::BufferWriter privkey_bbuf(privkey, sizeof(privkey));
-    privkey_bbuf.Put32(keyid);
+    // /* When HSM is used for ECC key generation, store key info in private key buffer */
+    // Encoding::LittleEndian::BufferWriter privkey_bbuf(privkey, sizeof(privkey));
+    // privkey_bbuf.Put32(keyid);
 
-    bbuf.Put(privkey, sizeof(privkey));
-    VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_BUFFER_TOO_SMALL);
+    // bbuf.Put(privkey, sizeof(privkey));
+    // VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_BUFFER_TOO_SMALL);
 
-    output.SetLength(bbuf.Needed());
+    // output.SetLength(bbuf.Needed());
 
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR P256KeypairHSM::Deserialize(P256SerializedKeypair & input)
+CHIP_ERROR P256Keypair::Deserialize(P256SerializedKeypair & input)
 {
     /* Set the public key */
-    P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
-    Encoding::BufferWriter bbuf((uint8_t *) Uint8::to_const_uchar(public_key), public_key.Length());
+    // P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
+    // Encoding::BufferWriter bbuf((uint8_t *) Uint8::to_const_uchar(public_key), public_key.Length());
 
-    VerifyOrReturnError(input.Length() == public_key.Length() + kP256_PrivateKey_Length, CHIP_ERROR_INVALID_ARGUMENT);
-    bbuf.Put(input.ConstBytes(), public_key.Length());
+    // VerifyOrReturnError(input.Length() == public_key.Length() + kP256_PrivateKey_Length, CHIP_ERROR_INVALID_ARGUMENT);
+    // bbuf.Put(input.ConstBytes(), public_key.Length());
 
-    /* Set private key info */
-    VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_NO_MEMORY);
+    // /* Set private key info */
+    // VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_NO_MEMORY);
 
-    /* When HSM is used for ECC key generation, key info in stored in private key buffer */
-    const uint8_t * privkey = input.ConstBytes() + public_key.Length();
-    keyid                   = Encoding::LittleEndian::Get32(privkey);
-    public_key.SetPublicKeyId(keyid);
+    // /* When HSM is used for ECC key generation, key info in stored in private key buffer */
+    // const uint8_t * privkey = input.ConstBytes() + public_key.Length();
+    // keyid                   = Encoding::LittleEndian::Get32(privkey);
+    // public_key.SetPublicKeyId(keyid);
 
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR P256PublicKeyHSM::ECDSA_validate_msg_signature(const uint8_t * msg, size_t msg_length,
+CHIP_ERROR P256PublicKey::ECDSA_validate_msg_signature(const uint8_t * msg, size_t msg_length,
                                                           const P256ECDSASignature & signature) const
 {
+#if !ENABLE_TRUSTM_ECDSA_VERIFY
+    return ECDSA_validate_msg_signature_H(this, msg, msg_length, signature);
+#else
     CHIP_ERROR error                                          = CHIP_ERROR_INTERNAL;
     uint8_t signature_trustm[kMax_ECDSA_Signature_Length_Der] = { 0 };
     size_t signature_trustm_len                               = sizeof(signature_trustm);
@@ -262,17 +303,20 @@ exit:
         trustm_close();
     }
     return error;
+#endif    
 }
 
-CHIP_ERROR P256KeypairHSM::NewCertificateSigningRequest(uint8_t * csr, size_t & csr_length) const
+CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr_length) const
 {
+#if !ENABLE_TRUSTM_GENERATE_EC_KEY
+    return NewCertificateSigningRequest_H(&mKeypair, csr, csr_length);
+#else    
     MutableByteSpan out_csr(csr, csr_length);
     CHIP_ERROR err = GenerateCertificateSigningRequest(this, out_csr);
     csr_length     = (CHIP_NO_ERROR == err) ? out_csr.size() : 0;
     return err;
+    #endif
 }
 
 } // namespace Crypto
 } // namespace chip
-
-#endif //#if ENABLE_HSM_GENERATE_EC_KEY

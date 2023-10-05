@@ -41,15 +41,19 @@ static const uint8_t metadata_hmac[] = {
     0x00,
 };
 
-#if ENABLE_HSM_HMAC_SHA256
-
 namespace chip {
 namespace Crypto {
 
-CHIP_ERROR HMAC_shaHSM::HMAC_SHA256(const uint8_t * key, size_t key_length, const uint8_t * message, size_t message_length,
+extern CHIP_ERROR HMAC_SHA256_h(const uint8_t * key, size_t key_length, const uint8_t * message, size_t message_length,
+                                uint8_t * out_buffer, size_t out_length);
+
+CHIP_ERROR HMAC_sha::HMAC_SHA256(const uint8_t * key, size_t key_length, const uint8_t * message, size_t message_length,
                                     uint8_t * out_buffer, size_t out_length)
 
 {
+#if !ENABLE_TRUSTM_HMAC_SHA256
+    return HMAC_SHA256_h(key, key_length, message, message_length, out_buffer, out_length);
+#else    
     CHIP_ERROR error                  = CHIP_ERROR_INTERNAL;
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
 
@@ -59,7 +63,7 @@ CHIP_ERROR HMAC_shaHSM::HMAC_SHA256(const uint8_t * key, size_t key_length, cons
 
     if (key_length > 64)
     {
-        return HMAC_sha::HMAC_SHA256(key, key_length, message, message_length, out_buffer, out_length);
+        return HMAC_sha::HMAC_SHA256_h(key, key_length, message, message_length, out_buffer, out_length);
     }
     VerifyOrReturnError(key_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(message != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
@@ -90,8 +94,7 @@ exit:
         trustm_close();
     }
     return error;
+#endif    
 }
 } // namespace Crypto
 } // namespace chip
-
-#endif // #if ENABLE_HSM_HMAC_SHA256

@@ -21,6 +21,8 @@ import("${psoc6_sdk_build_root}/psoc6_executable.gni")
 import("${psoc6_sdk_build_root}/psoc6_sdk.gni")
 import("${chip_root}/third_party/infineon/trustm/trustm_config.gni")
 import("${chip_root}/src/crypto/crypto.gni")
+import("${chip_root}/src/platform/Infineon/crypto/infineon_crypto.gni")
+
 
 assert(current_os == "freertos")
 
@@ -123,7 +125,8 @@ psoc6_executable("lock_app") {
     include_dirs += [ "${chip_root}/examples/platform/infineon/trustm"]
 
     public_deps += [
-      "${chip_root}/third_party/infineon/trustm:optiga-trust-m"
+      "${chip_root}/third_party/infineon/trustm:optiga-trust-m",
+      "${chip_root}/src/platform/Infineon/crypto/${infineon_crypto_impl}:infineon_crypto_lib",
     ]
   }
   sources = [

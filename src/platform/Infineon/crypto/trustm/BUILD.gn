@@ -16,6 +16,7 @@ import("//build_overrides/chip.gni")
 import("//build_overrides/nlassert.gni")
 import("${chip_root}/build/chip/buildconfig_header.gni")
 import("${chip_root}/src/crypto/crypto.gni")
+import("${chip_root}/src/platform/Infineon/crypto/trustm/args.gni")
 
 if (chip_crypto == "platform") {
   import("//build_overrides/mbedtls.gni")
@@ -35,15 +36,25 @@ source_set("public_headers") {
   ]
 }
 
+static_library("infineon_crypto_lib") {
   sources = [
+    "CHIPCryptoPAL_HostFallBack.cpp",
+    "CHIPCryptoPALHost.cpp",
     "CHIPCryptoPALHsm_HKDF_trustm.cpp",
     "CHIPCryptoPALHsm_HMAC_trustm.cpp",
     "CHIPCryptoPALHsm_P256_trustm.cpp",
     "CHIPCryptoPALHsm_utils_trustm.cpp",
+    "CHIPCryptoPALHsm_PBKDF_trustm.cpp",
+    "CHIPCryptoPALHsm_RNG_trustm.cpp",
+
   ]
 
   public_deps = [ ":public_headers" ]
-  
+  public_configs = []
+  public_deps += [ "${chip_root}/third_party/infineon/trustm:optiga-trust-m" ]
+  public_configs +=
+    [ "${chip_root}/third_party/infineon/trustm:trustm_config" ]
+  deps = [ "${chip_root}/${infineon_crypto_root}:optiga-trust-m" ]
   external_mbedtls = current_os == "zephyr"
 
   if (!external_mbedtls) {
@@ -54,3 +65,5 @@ source_set("public_headers") {
     "${chip_root}/src/crypto",
     "${chip_root}/src/platform/Infineon/crypto/trustm",
   ]
+  
+}

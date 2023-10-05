@@ -19,12 +19,10 @@
 
 #include <string.h>
 
-#include <crypto/CHIPCryptoPAL.h>
-#include <crypto/hsm/CHIPCryptoPALHsm.h>
+#include <CHIPCryptoPAL.h>
 #include <type_traits>
 
 #include "optiga_crypt.h"
-#include <crypto/hsm/CHIPCryptoPALHsm_config.h>
 #include <lib/core/CHIPSafeCasts.h>
 #include <lib/support/BufferWriter.h>
 #include <lib/support/CodeUtils.h>
@@ -32,6 +30,7 @@
 #include <system/SystemMutex.h>
 /* trustm includes */
 #include "optiga_util.h"
+#include <CHIPCryptoPALHsm_config_trustm.h>
 
 #ifdef __cplusplus
 extern "C" {
