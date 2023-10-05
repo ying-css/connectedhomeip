@@ -352,6 +352,55 @@ void Hash_SHA256_stream::Clear(void)
     mbedtls_platform_zeroize(this, sizeof(*this));
 }
 
+CHIP_ERROR PBKDF2_sha256::pbkdf2_sha256(const uint8_t * password, size_t plen, const uint8_t * salt, size_t slen,
+                                        unsigned int iteration_count, uint32_t key_length, uint8_t * output)
+{
+    CHIP_ERROR error = CHIP_NO_ERROR;
+    int result       = 0;
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) || MBEDTLS_VERSION_NUMBER < 0x03030000
+    const mbedtls_md_info_t * md_info;
+    mbedtls_md_context_t md_ctxt;
+    constexpr int use_hmac = 1;
+    bool free_md_ctxt      = false;
+#endif // !defined(MBEDTLS_DEPRECATED_REMOVED) || MBEDTLS_VERSION_NUMBER < 0x03030000
+
+    VerifyOrExit(password != nullptr, error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(plen > 0, error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(salt != nullptr, error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(slen >= kSpake2p_Min_PBKDF_Salt_Length, error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(slen <= kSpake2p_Max_PBKDF_Salt_Length, error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(key_length > 0, error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(output != nullptr, error = CHIP_ERROR_INVALID_ARGUMENT);
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) || MBEDTLS_VERSION_NUMBER < 0x03030000
+    md_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+    VerifyOrExit(md_info != nullptr, error = CHIP_ERROR_INTERNAL);
+
+    mbedtls_md_init(&md_ctxt);
+    free_md_ctxt = true;
+
+    result = mbedtls_md_setup(&md_ctxt, md_info, use_hmac);
+    VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
+
+    result = mbedtls_pkcs5_pbkdf2_hmac(&md_ctxt, Uint8::to_const_uchar(password), plen, Uint8::to_const_uchar(salt), slen,
+                                       iteration_count, key_length, Uint8::to_uchar(output));
+#else
+    result = mbedtls_pkcs5_pbkdf2_hmac_ext(MBEDTLS_MD_SHA256, Uint8::to_const_uchar(password), plen, Uint8::to_const_uchar(salt),
+                                           slen, iteration_count, key_length, Uint8::to_uchar(output));
+#endif // !defined(MBEDTLS_DEPRECATED_REMOVED) || MBEDTLS_VERSION_NUMBER < 0x03030000
+    VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
+
+exit:
+    _log_mbedTLS_error(result);
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) || MBEDTLS_VERSION_NUMBER < 0x03030000
+    if (free_md_ctxt)
+    {
+        mbedtls_md_free(&md_ctxt);
+    }
+#endif // !defined(MBEDTLS_DEPRECATED_REMOVED) || MBEDTLS_VERSION_NUMBER < 0x03030000
+
+    return error;
+}
+
 static EntropyContext * get_entropy_context()
 {
     if (!gsEntropyContext.mInitialized)
