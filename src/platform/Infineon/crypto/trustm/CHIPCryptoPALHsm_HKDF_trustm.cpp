@@ -65,7 +65,7 @@ CHIP_ERROR HKDF_sha::HKDF_SHA256(const uint8_t * secret, const size_t secret_len
     if (salt_length > 64 || info_length > 80 || secret_length > 256 || out_length > 768)
     {
         /* Length not supported by trustm. Rollback to SW */
-        return HKDF_sha::HKDF_SHA256(secret, secret_length, salt, salt_length, info, info_length, out_buffer, out_length);
+        return HKDF_SHA256_H(secret, secret_length, salt, salt_length, info, info_length, out_buffer, out_length);
     }
 
     // Salt is optional
