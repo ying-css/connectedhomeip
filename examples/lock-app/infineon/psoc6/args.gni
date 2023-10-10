@@ -21,9 +21,7 @@ import("${chip_root}/src/crypto/crypto.gni")
 psoc6_target_project =
     get_label_info(":lock_app_sdk_sources", "label_no_toolchain")
 
-# default to platform crypto implementation but allow commandline override
-if (chip_crypto == "") {
-  chip_crypto = "platform"
+if (chip_crypto == "platform") {
+  #Include to define infineon_crypto_impl
+  import("${chip_root}/src/platform/Infineon/crypto/trustm/args.gni")
 }
-#Include to define infineon_crypto_impl
-import("${chip_root}/src/platform/Infineon/crypto/trustm/args.gni")

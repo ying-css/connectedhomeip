@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import("//build_overrides/chip.gni")
+import("${chip_root}/src/crypto/crypto.gni")
 
 declare_args() {
   infineon_crypto_impl = ""
   infineon_crypto_root = ""
 }
-
-assert(infineon_crypto_impl != "", "infineon_crypto_impl should be defined")
-assert(infineon_crypto_root != "", "infineon_crypto_root should be defined")
+if (chip_crypto == "platform")
+{
+  assert(infineon_crypto_impl != "", "infineon_crypto_impl should be defined")
+  assert(infineon_crypto_root != "", "infineon_crypto_root should be defined")
+}
