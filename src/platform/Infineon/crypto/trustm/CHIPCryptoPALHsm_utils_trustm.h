@@ -43,6 +43,13 @@ extern optiga_util_t * p_local_util;
 #define TRUSTM_HMAC_OID_KEY (0xF1D9)
 #define TRUSTM_P256_PUBKEY_OID_KEY (0xF1DA)
 
+#define IFX_CRYPTO_KEY_MAGIC                                                                                                       \
+    {                                                                                                                              \
+        0xA0, 0x10, 0xA0, 0x10                                                                             \
+    }
+
+static const uint8_t trustm_magic_no[] = IFX_CRYPTO_KEY_MAGIC;
+
 /* Open session to trustm */
 void trustm_Open(void);
 void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t * cert_pem_length);
