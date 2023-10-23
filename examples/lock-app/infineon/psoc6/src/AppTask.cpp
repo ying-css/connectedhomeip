@@ -265,20 +265,19 @@ void AppTask::lockMgr_Init()
     }
 
     // Initialise WSTK buttons PB0 and PB1 (including debounce).
-    ButtonHandler::Init();
-
+    // ButtonHandler::Init();
     // Create FreeRTOS sw timer for Function Selection.
-    sFunctionTimer = xTimerCreate("FnTmr",          // Just a text name, not used by the RTOS kernel
-                                  1,                // == default timer period (mS)
-                                  false,            // no timer reload (==one-shot)
-                                  (void *) this,    // init timer id = app task obj context
-                                  TimerEventHandler // timer callback handler
-    );
-    if (sFunctionTimer == NULL)
-    {
-        P6_LOG("funct timer create failed");
-        appError(APP_ERROR_CREATE_TIMER_FAILED);
-    }
+    // sFunctionTimer = xTimerCreate("FnTmr",          // Just a text name, not used by the RTOS kernel
+    //                               1,                // == default timer period (mS)
+    //                               false,            // no timer reload (==one-shot)
+    //                               (void *) this,    // init timer id = app task obj context
+    //                               TimerEventHandler // timer callback handler
+    // );
+    // if (sFunctionTimer == NULL)
+    // {
+    //     P6_LOG("funct timer create failed");
+    //     appError(APP_ERROR_CREATE_TIMER_FAILED);
+    // }
 
     LockMgr().SetCallbacks(ActionInitiated, ActionCompleted);
 
@@ -304,6 +303,19 @@ void AppTask::lockMgr_Init()
 
 void AppTask::Init()
 {
+    // Initialise WSTK buttons PB0 and PB1 (including debounce).
+    ButtonHandler::Init();
+    sFunctionTimer = xTimerCreate("FnTmr",          // Just a text name, not used by the RTOS kernel
+                                  1,                // == default timer period (mS)
+                                  false,            // no timer reload (==one-shot)
+                                  (void *) this,    // init timer id = app task obj context
+                                  TimerEventHandler // timer callback handler
+    );
+    if (sFunctionTimer == NULL)
+    {
+        P6_LOG("funct timer create failed");
+        appError(APP_ERROR_CREATE_TIMER_FAILED);
+    }
 #if CHIP_DEVICE_CONFIG_ENABLE_OTA_REQUESTOR
     int rc = boot_set_confirmed();
     if (rc != 0)
