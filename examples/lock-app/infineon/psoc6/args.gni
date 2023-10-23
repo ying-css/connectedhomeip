@@ -21,7 +21,4 @@ import("${chip_root}/src/crypto/crypto.gni")
 psoc6_target_project =
     get_label_info(":lock_app_sdk_sources", "label_no_toolchain")
 
-if (chip_crypto == "platform") {
-  #Include to define infineon_crypto_impl
-  import("${chip_root}/src/platform/Infineon/crypto/trustm/args.gni")
-}
+import("${chip_root}/src/platform/Infineon/crypto/trustm/args.gni")
