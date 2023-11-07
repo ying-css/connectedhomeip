@@ -264,21 +264,6 @@ void AppTask::lockMgr_Init()
         appError(err);
     }
 
-    // Initialise WSTK buttons PB0 and PB1 (including debounce).
-    // ButtonHandler::Init();
-    // Create FreeRTOS sw timer for Function Selection.
-    // sFunctionTimer = xTimerCreate("FnTmr",          // Just a text name, not used by the RTOS kernel
-    //                               1,                // == default timer period (mS)
-    //                               false,            // no timer reload (==one-shot)
-    //                               (void *) this,    // init timer id = app task obj context
-    //                               TimerEventHandler // timer callback handler
-    // );
-    // if (sFunctionTimer == NULL)
-    // {
-    //     P6_LOG("funct timer create failed");
-    //     appError(APP_ERROR_CREATE_TIMER_FAILED);
-    // }
-
     LockMgr().SetCallbacks(ActionInitiated, ActionCompleted);
 
     // Initialize LEDs
@@ -303,8 +288,18 @@ void AppTask::lockMgr_Init()
 
 void AppTask::Init()
 {
+#if CHIP_DEVICE_CONFIG_ENABLE_OTA_REQUESTOR
+    int rc = boot_set_confirmed();
+    if (rc != 0)
+    {
+        P6_LOG("boot_set_confirmed failed");
+        appError(CHIP_ERROR_WELL_UNINITIALIZED);
+    }
+#endif
+
     // Initialise WSTK buttons PB0 and PB1 (including debounce).
     ButtonHandler::Init();
+    // Create FreeRTOS sw timer for Function Selection.
     sFunctionTimer = xTimerCreate("FnTmr",          // Just a text name, not used by the RTOS kernel
                                   1,                // == default timer period (mS)
                                   false,            // no timer reload (==one-shot)
@@ -316,14 +311,7 @@ void AppTask::Init()
         P6_LOG("funct timer create failed");
         appError(APP_ERROR_CREATE_TIMER_FAILED);
     }
-#if CHIP_DEVICE_CONFIG_ENABLE_OTA_REQUESTOR
-    int rc = boot_set_confirmed();
-    if (rc != 0)
-    {
-        P6_LOG("boot_set_confirmed failed");
-        appError(CHIP_ERROR_WELL_UNINITIALIZED);
-    }
-#endif
+
     // Register the callback to init the MDNS server when connectivity is available
     PlatformMgr().AddEventHandler(
         [](const ChipDeviceEvent * event, intptr_t arg) {
