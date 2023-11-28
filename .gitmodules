@@ -153,10 +153,6 @@
 	path = third_party/infineon/psoc6/psoc6_sdk/libs/wifi-host-driver
 	url = https://github.com/Infineon/wifi-host-driver
 	platforms = infineon
-[submodule "p6/wifi-mw-core"]
-	path = third_party/infineon/psoc6/psoc6_sdk/libs/wifi-mw-core
-	url = https://github.com/Infineon/wifi-mw-core
-	platforms = infineon
 [submodule "p6/TARGET_CY8CKIT-062S2-43012"]
 	path = third_party/infineon/psoc6/psoc6_sdk/libs/TARGET_CY8CKIT-062S2-43012
 	url = https://github.com/Infineon/TARGET_CY8CKIT-062S2-43012
@@ -296,4 +292,37 @@
 [submodule "third_party/infineon/trustm/optiga-trust-m"]
 	path = third_party/infineon/trustm/optiga-trust-m
 	url = https://github.com/Infineon/optiga-trust-m
+[submodule "third_party/asr/asr582x/asr_sdk"]
+	path = third_party/asr/asr582x/asr_sdk
+	url = https://github.com/asriot/ASR582X_Freertos.git
+	branch = matter
+	platforms = asr
+[submodule "third_party/asr/asr595x/asr_sdk"]
+	path = third_party/asr/asr595x/asr_sdk
+	url = https://github.com/asriot/ASR595X_Freertos.git
+	branch = matter
+	platforms = asr
+[submodule "perfetto"]
+	path = third_party/perfetto/repo
+	url = https://github.com/google/perfetto.git
+	branch = master
+	platforms = linux,android,darwin
+[submodule "third_party/asr/components"]
+	path = third_party/asr/components
+	url = https://github.com/asriot/asriot_components.git
+	branch = matter
+	platforms = asr
+[submodule "third_party/asr/asr550x/asr_sdk"]
+	path = third_party/asr/asr550x/asr_sdk
+	url = https://github.com/asriot/ASR550X_Freertos.git
+	branch = matter
+	platforms = asr
+[submodule "third_party/st/STM32CubeWB"]
+	path = third_party/st/STM32CubeWB
+	url = https://github.com/STMicroelectronics/STM32CubeWB.git
+	branch = v1.17.0
+	platforms = stm32
+[submodule "p6/lwip-network-interface-integration"]
+	path = third_party/infineon/psoc6/psoc6_sdk/libs/lwip-network-interface-integration
+	url = https://github.com/Infineon/lwip-network-interface-integration.git
 	platforms = infineon
