@@ -14,21 +14,17 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#include "DeviceAttestationCredsExampleTrustM.h"
 
+#include "DeviceAttestationCredsExampleTrustM.h"
 #include <credentials/examples/ExampleDACs.h>
 #include <credentials/examples/ExamplePAI.h>
 #include <crypto/CHIPCryptoPAL.h>
 #include <lib/core/CHIPError.h>
 #include <lib/support/Span.h>
+#include <CHIPCryptoPALHsm_config_trustm.h>
 
-#if CHIP_CRYPTO_HSM
-#include <crypto/hsm/CHIPCryptoPALHsm.h>
-#endif
-
-#ifdef ENABLE_HSM_DEVICE_ATTESTATION
-
-#include <crypto/hsm/infineon/CHIPCryptoPALHsm_utils_trustm.h>
+#ifdef ENABLE_TRUSTM_DEVICE_ATTESTATION
+#include <CHIPCryptoPALHsm_utils_trustm.h>
 
 /* Device attestation key ids for Trust M */
 #define DEV_ATTESTATION_KEY_ID 0xE0F0
@@ -108,7 +104,7 @@ CHIP_ERROR ExampleTrustMDACProvider::SignWithDeviceAttestationKey(const ByteSpan
                                                                   MutableByteSpan & out_signature_buffer)
 {
     Crypto::P256ECDSASignature signature;
-    Crypto::P256KeypairHSM keypair;
+    Crypto::P256Keypair keypair;
 
     ChipLogDetail(Crypto, "Sign using DA key from trustm");
 
@@ -116,8 +112,6 @@ CHIP_ERROR ExampleTrustMDACProvider::SignWithDeviceAttestationKey(const ByteSpan
     VerifyOrReturnError(IsSpanUsable(message_to_sign), CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(out_signature_buffer.size() >= signature.Capacity(), CHIP_ERROR_BUFFER_TOO_SMALL);
 
-    keypair.SetKeyId(DEV_ATTESTATION_KEY_ID);
-    keypair.provisioned_key = true;
     keypair.Initialize(Crypto::ECPKeyTarget::ECDSA);
 
     ReturnErrorOnFailure(keypair.ECDSA_sign_msg(message_to_sign.data(), message_to_sign.size(), signature));
@@ -138,4 +132,4 @@ DeviceAttestationCredentialsProvider * GetExampleTrustMDACProvider()
 } // namespace Credentials
 } // namespace chip
 
-#endif //#ifdef ENABLE_HSM_DEVICE_ATTESTATION
+#endif //#ifdef ENABLE_TRUSTM_DEVICE_ATTESTATION

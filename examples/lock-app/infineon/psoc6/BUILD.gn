@@ -123,12 +123,18 @@ psoc6_executable("lock_app") {
   if (chip_crypto == "platform") {
     include_dirs += [ "${chip_root}/third_party/infineon/trustm" ]
     include_dirs += [ "${chip_root}/examples/platform/infineon/trustm"]
+    include_dirs += [ "${chip_root}/src/platform/Infineon/crypto/trustm"]
 
+    defines = [
+      "ENABLE_DEVICE_ATTESTATION=1",
+    ]
+    
     public_deps += [
       "${chip_root}/third_party/infineon/trustm:optiga-trust-m",
       "${chip_root}/src/platform/Infineon/crypto/${infineon_crypto_impl}:infineon_crypto_lib",
     ]
   }
+
   sources = [
     "${examples_plat_dir}/LEDWidget.cpp",
     "${examples_plat_dir}/init_psoc6Platform.cpp",

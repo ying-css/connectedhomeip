@@ -33,6 +33,8 @@ source_set("public_headers") {
     "${chip_root}/src/lib/core",
     "${chip_root}/src/lib/support",
     "${nlassert_root}:nlassert",
+    "${chip_root}/src/crypto",
+
   ]
 }
 
@@ -44,6 +46,8 @@ static_library("infineon_crypto_lib") {
     "CHIPCryptoPALHsm_HMAC_trustm.cpp",
     "CHIPCryptoPALHsm_P256_trustm.cpp",
     "CHIPCryptoPALHsm_utils_trustm.cpp",
+    "DeviceAttestationCredsExampleTrustM.cpp",
+    "DeviceAttestationCredsExampleTrustM.h",
   ]
 
   public_deps = [ ":public_headers" ]

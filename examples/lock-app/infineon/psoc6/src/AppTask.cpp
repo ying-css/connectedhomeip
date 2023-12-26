@@ -45,12 +45,8 @@
 #include <app/clusters/door-lock-server/door-lock-server.h>
 #include <app/clusters/identify-server/identify-server.h>
 
-#if CHIP_CRYPTO_HSM
-#include <crypto/hsm/CHIPCryptoPALHsm.h>
-#endif
-
-#ifdef ENABLE_HSM_DEVICE_ATTESTATION
-#include "DeviceAttestationCredsExampleTrustM.h"
+#if ENABLE_DEVICE_ATTESTATION
+#include <DeviceAttestationCredsExampleTrustM.h>
 #endif
 
 /* OTA related includes */
@@ -165,7 +161,7 @@ static void InitServer(intptr_t context)
     chip::DeviceLayer::SetDeviceInfoProvider(&gExampleDeviceInfoProvider);
 
     // Initialize device attestation config
-#ifdef ENABLE_HSM_DEVICE_ATTESTATION
+#if ENABLE_DEVICE_ATTESTATION
     SetDeviceAttestationCredentialsProvider(Examples::GetExampleTrustMDACProvider());
 #else
     SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
