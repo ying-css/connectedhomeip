@@ -49,6 +49,17 @@ const uint8_t kTlvHeader = 2;
 namespace chip {
 namespace Crypto {
 
+#define EC_NIST_P256_KP_HEADER                                                                                                     \
+    {                                                                                                                              \
+        0x30, 0x81, 0x87, 0x02, 0x01, 0x00, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A,    \
+            0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x04, 0x6D, 0x30, 0x6B, 0x02, 0x01, 0x01, 0x04, 0x20,                        \
+    }
+
+#define EC_NIST_P256_KP_PUB_HEADER                                                                                                 \
+    {                                                                                                                              \
+        0xA1, 0x44, 0x03, 0x42, 0x00,                                                                                              \
+    }
+
 extern CHIP_ERROR Initialize_H(P256Keypair * pk, P256PublicKey * mPublicKey, P256KeypairContext * mKeypair);
 extern CHIP_ERROR ECDSA_sign_msg_H(P256KeypairContext * mKeypair, const uint8_t * msg, const size_t msg_length,
                                    P256ECDSASignature & out_signature);
@@ -109,38 +120,32 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
     uint16_t pubKeyLen = sizeof(pubkey);
     uint32_t keyid = 0;
 
-    if (keyid == 0)
-    {
-        ChipLogDetail(Crypto, "Keyid not set !. Set key id using 'SetKeyId' member class !");
-        return CHIP_ERROR_INTERNAL;
-    }
-
+    //if (key_target == ECPKeyTarget::ECDH)
+    //{
+    //    keyid = TRUSTM_ECDH_OID_KEY;
+    //}
+    //else
+    //{
+        keyid   = TRUSTM_NODE_OID_KEY_START;
+    //}
     // Trust M init
     trustm_Open();
-    if (provisioned_key == false)
-    {
-        // Trust M ECC 256 Key Gen
-        ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
-        uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION);
-        return_status     = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
-        VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
-    }
-    else
-    {
-        // Read out the public Key stored
-        ChipLogDetail(Crypto, "Provisioned_key - %lx !", keyid);
-        trustmGetKey(TRUSTM_P256_PUBKEY_OID_KEY, pubkey, &pubKeyLen);
+    // Trust M ECC 256 Key Gen
+    ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
+    uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION);
+    return_status     = trustm_ecc_keygen(keyid, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
+    VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
 
-        /* Set the public key */
-        P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
-        VerifyOrReturnError((size_t) pubKeyLen > NIST256_HEADER_OFFSET, CHIP_ERROR_INTERNAL);
-        VerifyOrReturnError(((size_t) pubKeyLen - NIST256_HEADER_OFFSET) <= kP256_PublicKey_Length, CHIP_ERROR_INTERNAL);
-        memcpy((void *) Uint8::to_const_uchar(public_key), pubkey, pubKeyLen);
-        //public_key.SetPublicKeyId(keyid);
-        memcpy(&mKeypair.mBytes[0], trustm_magic_no, sizeof(trustm_magic_no));
-        mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET + 2] = (keyid >> (1 * 8)) & 0x00FF;
-        mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET + 3] = (keyid >> (0 * 8)) & 0x00FF;
-    }
+     /* Set the public key */
+    P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
+    VerifyOrReturnError((size_t) pubKeyLen > NIST256_HEADER_OFFSET, CHIP_ERROR_INTERNAL);
+    VerifyOrReturnError(((size_t) pubKeyLen - NIST256_HEADER_OFFSET) <= kP256_PublicKey_Length, CHIP_ERROR_INTERNAL);
+    memcpy((void *) Uint8::to_const_uchar(public_key), pubkey, pubKeyLen);
+
+    memcpy(&mKeypair.mBytes[0], trustm_magic_no, sizeof(trustm_magic_no));
+    mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET + 2] = (keyid >> (1 * 8)) & 0x00FF;
+    mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET + 3] = (keyid >> (0 * 8)) & 0x00FF;
+
     mInitialized = true;
     error = CHIP_NO_ERROR;
 
@@ -158,7 +163,6 @@ CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P
     return ECDSA_sign_msg_H(&mKeypair, msg, msg_length, out_signature);
 #else
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
-
     uint8_t signature_trustm[kMax_ECDSA_Signature_Length_Der] = { 0 };
     uint16_t signature_trustm_len                             = (uint16_t) kMax_ECDSA_Signature_Length_Der;
     uint8_t digest[32];
@@ -171,7 +175,7 @@ CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P
 
     VerifyOrReturnError(msg != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(msg_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
-
+    ChipLogDetail(Crypto, "ECDSA_sign_msg: Using trustm for ecdsa sign!");
     // Trust M Init
     trustm_Open();
     // Hash to get the digest
@@ -203,7 +207,11 @@ exit:
 CHIP_ERROR P256Keypair::ECDH_derive_secret(const P256PublicKey & remote_public_key, P256ECDHDerivedSecret & out_secret) const
 {
     // Use the software based one
+//#if !ENABLE_SE05X_GENERATE_EC_KEY
     return ECDH_derive_secret_H(&mKeypair, remote_public_key, out_secret);
+//#else 
+   //Add in ECDH function 
+  
 }
 
 CHIP_ERROR P256PublicKey::ECDSA_validate_hash_signature(const uint8_t * hash, size_t hash_length,
@@ -262,15 +270,11 @@ CHIP_ERROR P256Keypair::Serialize(P256SerializedKeypair & output) const
     bbuf.Put(Uint8::to_uchar(public_key), public_key.Length());
 
     VerifyOrReturnError(bbuf.Available() == sizeof(privkey), CHIP_ERROR_INTERNAL);
-    VerifyOrReturnError(sizeof(privkey) >= 4, CHIP_ERROR_INTERNAL);
 
-    /* When HSM is used for ECC key generation, store key info in private key buffer */
-    Encoding::LittleEndian::BufferWriter privkey_bbuf(privkey, sizeof(privkey));
-    privkey_bbuf.Put32(keyid);
-
-    bbuf.Put(privkey, sizeof(privkey));
+    /* Set the private key trustm_magic_no */
+    bbuf.Put(mKeypair.mBytes, kP256_PrivateKey_Length);
     VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_BUFFER_TOO_SMALL);
-
+  
     output.SetLength(bbuf.Needed());
 
     return CHIP_NO_ERROR;
@@ -278,22 +282,45 @@ CHIP_ERROR P256Keypair::Serialize(P256SerializedKeypair & output) const
 
 CHIP_ERROR P256Keypair::Deserialize(P256SerializedKeypair & input)
 {
+    CHIP_ERROR error = CHIP_ERROR_INTERNAL;
+    const uint8_t * privkey;
     /* Set the public key */
     P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
     Encoding::BufferWriter bbuf((uint8_t *) Uint8::to_const_uchar(public_key), public_key.Length());
 
     VerifyOrReturnError(input.Length() == public_key.Length() + kP256_PrivateKey_Length, CHIP_ERROR_INVALID_ARGUMENT);
-    bbuf.Put(input.ConstBytes(), public_key.Length());
 
-    /* Set private key info */
-    VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_NO_MEMORY);
+    privkey = input.ConstBytes() /*Uint8::to_const_uchar(input) */ + public_key.Length();
 
-    /* When HSM is used for ECC key generation, key info in stored in private key buffer */
-    const uint8_t * privkey = input.ConstBytes() + public_key.Length();
-    keyid                   = Encoding::LittleEndian::Get32(privkey);
-    public_key.SetPublicKeyId(keyid);
+    if (0 == memcmp(privkey, trustm_magic_no, sizeof(trustm_magic_no)))
+    {
+        /* trustm_magic_no + KeyID is passed */
+        ChipLogDetail(Crypto, "Deserialize: ref key found");
+        bbuf.Put(input.Bytes(), public_key.Length());
+        VerifyOrReturnError(bbuf.Fit(), CHIP_ERROR_NO_MEMORY);
 
+        memcpy(&mKeypair.mBytes[0], trustm_magic_no, sizeof(trustm_magic_no));
+        mKeypair.mBytes[8]  = *(privkey + 8);
+        mKeypair.mBytes[9]  = *(privkey + 9);
+        // ChipLogDetail(Crypto, "Parsed keyId = 0x%02X%02X", mKeypair.mBytes[8], mKeypair.mBytes[9]);
+
+        mInitialized = true;
+
+        return CHIP_NO_ERROR;
+    }
+    else
+    {
+#if !ENABLE_SE05X_KEY_IMPORT
+        if (CHIP_NO_ERROR == (error = Deserialize_H(this, &mPublicKey, &mKeypair, input)))
+        {
+            mInitialized = true;
+        }
+        return error;
+#else
+    // Add in code for Trust M
     return CHIP_NO_ERROR;
+#endif
+    }
 }
 
 CHIP_ERROR P256PublicKey::ECDSA_validate_msg_signature(const uint8_t * msg, size_t msg_length,
@@ -390,7 +417,7 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
 
     // Copy public key (with header)
     {
-        P256PublicKeyHSM & public_key = const_cast<P256PublicKeyHSM &>(Pubkey());
+        P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
 
         VerifyOrExit((sizeof(nist256_header) + public_key.Length()) <= sizeof(pubkey), error = CHIP_ERROR_INTERNAL);
 
