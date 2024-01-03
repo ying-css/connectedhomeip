@@ -136,7 +136,8 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
     ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
     uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION);
 
-    return_status = trustm_ecc_keygen(keyid, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
+    return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
+    //return_status = trustm_ecc_keygen(keyid, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
     
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
 
@@ -410,6 +411,13 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     uint8_t nist256_header[] = {0x30,0x59,0x30,0x13,0x06,0x07,0x2A,0x86,0x48,0xCE,0x3D,0x02,0x01,
                                 0x06,0x08,0x2A,0x86,0x48,0xCE,0x3D,0x03,0x01,0x07,0x03,0x42,0x00};
 
+    VerifyOrReturnError(mInitialized, CHIP_ERROR_WELL_UNINITIALIZED);
+
+    if (CHIP_NO_ERROR != get_trustm_keyid_from_keypair(mKeypair, &keyid))
+    {
+        ChipLogDetail(Crypto, "NewCertificateSigningRequest : Not hsm key. Using host for CSR");
+        return NewCertificateSigningRequest_H(&mKeypair, csr, csr_length);
+    }
     ChipLogDetail(Crypto, "NewCertificateSigningRequest: Using Trust M for CSR Creating!");
 
     // No extensions are copied
@@ -471,16 +479,17 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     // TLV data is created by copying from backwards. move it to start of buffer.
     data_to_hash_len = (data_to_hash_len - buffer_index);
     memmove(data_to_hash, (data_to_hash + buffer_index), data_to_hash_len);
-
-    /* Create hash of `data_to_hash` buffer */
-    // Trust M Init
-    trustm_Open();
+    
     //Hash to get the digest
     memset(&digest[0], 0, sizeof(digest));
-    Hash_SHA256(data_to_hash, data_to_hash_len, &digest[0]);
+    error = Hash_SHA256(data_to_hash, data_to_hash_len, &digest[0]);
+    SuccessOrExit(error);
+
+    // Trust M Init
+    trustm_Open();
 
     // Sign on hash
-    return_status = trustm_ecdsa_sign(OPTIGA_KEY_ID_E0F3, digest, (uint8_t)digest_length, 
+    return_status = trustm_ecdsa_sign(OPTIGA_KEY_ID_E0F2, digest, (uint8_t)digest_length, 
                         signature_trustm, (uint16_t*)(&signature_len));
 
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL) ;
