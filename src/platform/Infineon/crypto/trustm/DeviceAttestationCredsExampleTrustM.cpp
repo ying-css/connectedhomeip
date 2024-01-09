@@ -105,6 +105,7 @@ CHIP_ERROR ExampleTrustMDACProvider::SignWithDeviceAttestationKey(const ByteSpan
 {
     Crypto::P256ECDSASignature signature;
     Crypto::P256Keypair keypair;
+    Crypto::P256SerializedKeypair serialized_keypair;
 
     ChipLogDetail(Crypto, "Sign using DA key from trustm");
 
@@ -112,7 +113,13 @@ CHIP_ERROR ExampleTrustMDACProvider::SignWithDeviceAttestationKey(const ByteSpan
     VerifyOrReturnError(IsSpanUsable(message_to_sign), CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(out_signature_buffer.size() >= signature.Capacity(), CHIP_ERROR_BUFFER_TOO_SMALL);
 
-    keypair.Initialize(Crypto::ECPKeyTarget::ECDSA);
+    serialized_keypair.SetLength(Crypto::kP256_PublicKey_Length + Crypto::kP256_PrivateKey_Length);
+
+    memset(serialized_keypair.Bytes(), 0, Crypto::kP256_PublicKey_Length);
+    memcpy(serialized_keypair.Bytes() + Crypto::kP256_PublicKey_Length, trustm_magic_no, sizeof(trustm_magic_no));
+    
+
+    ReturnErrorOnFailure(keypair.Deserialize(serialized_keypair));
 
     ReturnErrorOnFailure(keypair.ECDSA_sign_msg(message_to_sign.data(), message_to_sign.size(), signature));
 
