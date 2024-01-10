@@ -136,8 +136,7 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
     ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
     uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION);
 
-    return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
-    //return_status = trustm_ecc_keygen(keyid, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, pubKeyLen);
+    return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, &pubKeyLen);
     
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
 

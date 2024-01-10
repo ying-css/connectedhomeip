@@ -63,7 +63,7 @@ optiga_lib_status_t deriveKey_HKDF(const uint8_t * salt, uint16_t salt_length, c
 optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t * input_data, uint32_t input_data_length, uint8_t * mac,
                                 uint32_t * mac_length);
 optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, optiga_ecc_curve_t curve_id, uint8_t * pubkey,
-                                      uint16_t pubkey_length);
+                                      uint16_t *pubkey_length);
 optiga_lib_status_t trustm_hash(uint8_t * msg, uint16_t msg_length, uint8_t * digest, uint8_t digest_length);
 optiga_lib_status_t trustm_ecdsa_sign(optiga_key_id_t optiga_key_id, uint8_t * digest, uint8_t digest_length, uint8_t * signature,
                                       uint16_t * signature_length);

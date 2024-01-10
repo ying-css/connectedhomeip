@@ -538,7 +538,7 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t * input_d
 }
 
 optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, optiga_ecc_curve_t curve_id, uint8_t * pubkey,
-                                      uint16_t pubkey_length)
+                                      uint16_t *pubkey_length)
 {
     optiga_lib_status_t return_status;
     uint8_t header256[] = { 0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02,
@@ -560,7 +560,7 @@ optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, 
 
         optiga_lib_status = OPTIGA_LIB_BUSY;
         return_status = optiga_crypt_ecc_generate_keypair(p_local_crypt, curve_id, key_type, FALSE, &optiga_key_id, (pubkey + i),
-                                                          &pubkey_length);
+                                                          pubkey_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
             // optiga_crypt_ecc_generate_keypair api returns error !!!
