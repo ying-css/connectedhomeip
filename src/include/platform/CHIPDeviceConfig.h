@@ -872,7 +872,7 @@
  *   Test Spake2p passcode to use if actual passcode value is not provisioned in the device memory.
  */
 #ifndef CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE
-#define CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE 20202021
+#define CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE 20202022
 #endif
 
 /**
@@ -918,7 +918,7 @@
  */
 #ifndef CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_VERIFIER
 
-#if CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE != 20202021
+#if CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE != 20202022
 #error "Non-default Spake2+ passcode configured but verifier left unchanged"
 #endif
 
@@ -932,8 +932,7 @@
 
 // Generated with: spake2p gen-verifier -o - -i 1000 -s "U1BBS0UyUCBLZXkgU2FsdA==" -p 20202021
 #define CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_VERIFIER                                                                               \
-    "uWFwqugDNGiEck/po7KHwwMwwqZgN10XuyBajPGuyzUEV/iree4lOrao5GuwnlQ65CJzbeUB49s31EH+NEkg0JVI5MGCQGMMT/SRPFNRODm3wH/MBiehuFc6FJ/"  \
-    "NH6Rmzw=="
+    "3CvibQGwGgzNG5uZ/w8sBP3Jf6hitoyLk5d3sBZJ7T8ExDvEGJUdT5GL4JDdhBb6GhekImBb0M8ZGKWiq2SiXk+SPsJqpMjhlngqDbkuYcECP8+J5Kv+MUwlGUa5KgX2nQ=="
 #endif
 
 #else

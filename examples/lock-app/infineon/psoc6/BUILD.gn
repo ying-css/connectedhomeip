@@ -32,7 +32,7 @@ declare_args() {
   chip_print_memory_usage = false
 
   # PIN code for PASE session establishment.
-  setup_pin_code = 20202021
+  setup_pin_code = 20202022
 
   # Build update app
   build_update_image = false
