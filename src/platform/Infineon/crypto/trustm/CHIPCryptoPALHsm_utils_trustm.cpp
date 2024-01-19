@@ -578,6 +578,8 @@ optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, 
     {
         optiga_crypt_destroy(p_local_crypt);
     }
+
+    *pubkey_length += sizeof(header256);
     return return_status;
 }
 void trustmGetKey(uint16_t optiga_oid, uint8_t * pubkey, uint16_t * pubkeyLen)

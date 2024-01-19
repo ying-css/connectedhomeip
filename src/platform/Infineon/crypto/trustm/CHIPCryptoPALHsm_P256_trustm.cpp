@@ -63,6 +63,8 @@ namespace Crypto {
         0xA1, 0x44, 0x03, 0x42, 0x00,                                                                                              \
     }
 
+#define NIST256_HEADER_LENGTH               (26)
+
 extern CHIP_ERROR Initialize_H(P256Keypair * pk, P256PublicKey * mPublicKey, P256KeypairContext * mKeypair);
 extern CHIP_ERROR ECDSA_sign_msg_H(P256KeypairContext * mKeypair, const uint8_t * msg, const size_t msg_length,
                                    P256ECDSASignature & out_signature);
@@ -407,8 +409,6 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     // Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
     uint8_t version[3]       = { 0x02, 0x01, 0x00 };
     uint8_t signature_oid[8] = { 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x04, 0x03, 0x02 };
-    uint8_t nist256_header[] = {0x30,0x59,0x30,0x13,0x06,0x07,0x2A,0x86,0x48,0xCE,0x3D,0x02,0x01,
-                                0x06,0x08,0x2A,0x86,0x48,0xCE,0x3D,0x03,0x01,0x07,0x03,0x42,0x00};
 
     VerifyOrReturnError(mInitialized, CHIP_ERROR_WELL_UNINITIALIZED);
 
@@ -426,14 +426,11 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     // Copy public key (with header)
     {
         P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
+        // Add the NIST256 header length as it is already part of the public key
+        pubKeyLen = public_key.Length()+ NIST256_HEADER_LENGTH;
 
-        VerifyOrExit((sizeof(nist256_header) + public_key.Length()) <= sizeof(pubkey), error = CHIP_ERROR_INTERNAL);
+        memcpy(pubkey, Uint8::to_uchar(public_key), pubKeyLen);
 
-        memcpy(pubkey, nist256_header, sizeof(nist256_header));
-        pubKeyLen = pubKeyLen + sizeof(nist256_header);
-
-        memcpy((pubkey + pubKeyLen), Uint8::to_uchar(public_key), public_key.Length());
-        pubKeyLen = pubKeyLen + public_key.Length();
     }
 
     buffer_index -= pubKeyLen;
