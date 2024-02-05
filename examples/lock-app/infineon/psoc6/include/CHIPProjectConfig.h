@@ -38,17 +38,17 @@
 #define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID 0x8006
 
 /* The ProductName attribute of the Basic cluster. */
-#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_NAME "P6-CYW43012 Lock"
+#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_NAME "P6-CYW43012-TRUST-M Lock"
 
 /* The HardwareVersionString attribute of the Basic cluster. */
-#define CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION_STRING "P6-43012"
+#define CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION_STRING "P6-43012-TRUST-M"
 
 /* The HardwareVersion attribute of the Basic cluster. */
-#define CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION 43012
+#define CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION 100
 
 /* The SoftwareVersion attribute of the Basic cluster. */
 #ifndef CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION
-#define CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION 1
+#define CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION 100
 #endif
 
 /* define Device type based on the application */
@@ -70,7 +70,7 @@
  * physical device, a change to its packaging, and/or a change to its marketing presentation.
  * This value is generally *not* incremented for device software versions.
  */
-#define CHIP_DEVICE_CONFIG_DEVICE_HARDWARE_VERSION 43012
+#define CHIP_DEVICE_CONFIG_DEVICE_HARDWARE_VERSION 100
 
 /**
  * CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION_STRING
@@ -80,7 +80,7 @@
  * {MAJOR_VERSION}.0d{MINOR_VERSION}
  */
 #ifndef CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION_STRING
-#define CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION_STRING "1.0"
+#define CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION_STRING "1.0.0"
 #endif
 /**
  * CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
