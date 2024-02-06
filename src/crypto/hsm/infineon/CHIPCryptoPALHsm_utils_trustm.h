@@ -47,8 +47,10 @@ extern optiga_util_t * p_local_util;
 
 
 /* Open session to trustm */
+void optiga_trustm_task(void *param);
 void trustm_Open(void);
 void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t * cert_pem_length);
+void read_data(uint16_t optiga_oid);
 void write_data(uint16_t optiga_oid, const uint8_t * p_data, uint16_t length);
 void write_metadata(uint16_t optiga_oid, const uint8_t * p_data, uint8_t length);
 void trustmGetKey(uint16_t optiga_oid, uint8_t * pubkey, uint16_t * pubKeyLen);

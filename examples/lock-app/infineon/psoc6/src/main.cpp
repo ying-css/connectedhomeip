@@ -37,6 +37,7 @@
 #include "cyhal_wdt.h"
 #include "init_psoc6Platform.h"
 #include <app/server/Server.h>
+#include "../../../../../src/crypto/hsm/infineon/CHIPCryptoPALHsm_utils_trustm.h"
 
 #define MAIN_TASK_STACK_SIZE (4096)
 #define MAIN_TASK_PRIORITY 2
@@ -139,6 +140,11 @@ int main(void)
     P6_LOG("chip-p6-trustm-lock-example starting Version %d\r\n", CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION);
     P6_LOG("==================================================\r\n");
 
+
+#if 1
+    xTaskCreate(optiga_trustm_task, "optiga_task", (1024*5), NULL, 2, NULL);
+    
+#endif
     /* Start the FreeRTOS scheduler */
     vTaskStartScheduler();
 
