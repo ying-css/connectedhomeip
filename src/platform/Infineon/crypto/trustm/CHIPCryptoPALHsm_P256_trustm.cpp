@@ -139,13 +139,13 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
     uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION);
 
     return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, &pubKeyLen);
-    
+    // Add signature length
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
 
      /* Set the public key */
     VerifyOrReturnError((size_t) pubKeyLen > NIST256_HEADER_OFFSET, CHIP_ERROR_INTERNAL);
     VerifyOrReturnError(((size_t) pubKeyLen - NIST256_HEADER_OFFSET) <= kP256_PublicKey_Length, CHIP_ERROR_INTERNAL);
-    memcpy((void *) Uint8::to_const_uchar(public_key), pubkey, pubKeyLen);
+    memcpy((void *) Uint8::to_const_uchar(public_key), pubkey + NIST256_HEADER_OFFSET, pubKeyLen - NIST256_HEADER_OFFSET);
 
     memcpy(&mKeypair.mBytes[0], trustm_magic_no, sizeof(trustm_magic_no));
     mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET] = (keyid >> (1 * 8)) & 0x00FF;
@@ -396,9 +396,9 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     uint8_t pubkey[128]       = { 0 };
     size_t pubKeyLen          = 0;
     uint8_t digest[32]          = { 0 };
-    size_t digest_length        = sizeof(digest);
+    uint8_t digest_length        = sizeof(digest);
     uint8_t signature_trustm[128]    = { 0 };
-    size_t signature_len      = sizeof(signature_trustm);
+    uint16_t signature_len      = sizeof(signature_trustm);
 
     size_t csr_index    = 0;
     size_t buffer_index = data_to_hash_len;
@@ -409,6 +409,8 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     // Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
     uint8_t version[3]       = { 0x02, 0x01, 0x00 };
     uint8_t signature_oid[8] = { 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x04, 0x03, 0x02 };
+    uint8_t nist256_header[] = { 0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01,
+                                 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00 };
 
     VerifyOrReturnError(mInitialized, CHIP_ERROR_WELL_UNINITIALIZED);
 
@@ -426,11 +428,14 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     // Copy public key (with header)
     {
         P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
-        // Add the NIST256 header length as it is already part of the public key
-        pubKeyLen = public_key.Length()+ NIST256_HEADER_LENGTH;
 
-        memcpy(pubkey, Uint8::to_uchar(public_key), pubKeyLen);
+        VerifyOrExit((sizeof(nist256_header) + public_key.Length()) <= sizeof(pubkey), error = CHIP_ERROR_INTERNAL);
 
+        memcpy(pubkey, nist256_header, sizeof(nist256_header));
+        pubKeyLen = pubKeyLen + sizeof(nist256_header);
+
+        memcpy((pubkey + pubKeyLen), Uint8::to_uchar(public_key), public_key.Length());
+        pubKeyLen = pubKeyLen + public_key.Length();
     }
 
     buffer_index -= pubKeyLen;
@@ -478,15 +483,15 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
     
     //Hash to get the digest
     memset(&digest[0], 0, sizeof(digest));
-    error = Hash_SHA256(data_to_hash, data_to_hash_len, &digest[0]);
+    error = Hash_SHA256(data_to_hash, data_to_hash_len, digest);
     SuccessOrExit(error);
 
     // Trust M Init
     trustm_Open();
 
     // Sign on hash
-    return_status = trustm_ecdsa_sign(OPTIGA_KEY_ID_E0F2, digest, (uint8_t)digest_length, 
-                        signature_trustm, (uint16_t*)(&signature_len));
+    return_status = trustm_ecdsa_sign(OPTIGA_KEY_ID_E0F2, digest, digest_length, 
+                        signature_trustm, &signature_len);
 
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL) ;
     VerifyOrExit((csr_index + 3) <= csr_length, error = CHIP_ERROR_INTERNAL);
