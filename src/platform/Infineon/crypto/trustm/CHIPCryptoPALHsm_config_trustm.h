@@ -35,7 +35,7 @@
 /*
  * Enable Key Import for trustm
  */
-#define ENABLE_TRUSTM_TRUSTM_KEY_IMPORT     0
+#define ENABLE_TRUSTM_KEY_IMPORT     0
 
 /*
  * Enable trustm for HKDF SHA256
