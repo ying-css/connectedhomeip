@@ -132,10 +132,11 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
         // Trust M init
         trustm_Open();
         // Trust M ECC 256 Key Gen
-        ChipLogDetail(Crypto, "Generating NIST256 key in Trust M for ecdh!");
+        ChipLogDetail(Crypto, "Generating NIST256 key in TrustM for ECDH!");
         uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_KEY_AGREEMENT);
 
         return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F3, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, &pubKeyLen);
+
         // Add signature length
         VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
 
@@ -158,7 +159,7 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
         // Trust M init
         trustm_Open();
         // Trust M ECC 256 Key Gen
-        ChipLogDetail(Crypto, "Generating NIST256 key in Trust M !");
+        ChipLogDetail(Crypto, "Generating NIST256 key in TrustM !");
         uint8_t key_usage = (optiga_key_usage_t)(OPTIGA_KEY_USAGE_SIGN | OPTIGA_KEY_USAGE_AUTHENTICATION);
 
         return_status = trustm_ecc_keygen(OPTIGA_KEY_ID_E0F2, key_usage, OPTIGA_ECC_CURVE_NIST_P_256, pubkey, &pubKeyLen);
@@ -207,7 +208,7 @@ CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P
 
     VerifyOrReturnError(msg != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(msg_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
-    ChipLogDetail(Crypto, "ECDSA_sign_msg: Using trustm for ecdsa sign!");
+    ChipLogDetail(Crypto, "ECDSA_sign_msg: Using TrustM for ecdsa sign!");
     // Trust M Init
     trustm_Open();
     // Hash to get the digest
@@ -238,7 +239,7 @@ exit:
 
 CHIP_ERROR P256Keypair::ECDH_derive_secret(const P256PublicKey & remote_public_key, P256ECDHDerivedSecret & out_secret) const
 {
-#if !ENABLE_SE05X_GENERATE_EC_KEY
+#if !ENABLE_TRUSTM_GENERATE_EC_KEY
     return ECDH_derive_secret_H(&mKeypair, remote_public_key, out_secret);
 #else
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
@@ -247,17 +248,17 @@ CHIP_ERROR P256Keypair::ECDH_derive_secret(const P256PublicKey & remote_public_k
     uint32_t keyid = 0;
     if (CHIP_NO_ERROR != get_trustm_keyid_from_keypair(mKeypair, &keyid))
     {
-        ChipLogDetail(Crypto, "ECDH_derive_secret : Using host for ecdh");
+        ChipLogDetail(Crypto, "ECDH_derive_secret : Using Host for ECDH");
         return ECDH_derive_secret_H(&mKeypair, remote_public_key, out_secret);
     }
 
     ChipLogDetail(Crypto, "ECDH_derive_secret: Using TrustM for ECDH !");
     trustm_Open();
 
-    const uint8_t * const pubKey = Uint8::to_const_uchar(remote_public_key);
-    const size_t pubKeyLen       = remote_public_key.Length();
-    return_status = trustm_ecdh_derive_secret(OPTIGA_KEY_ID_E0F3, (uint8_t *)pubKey, (uint16_t)pubKeyLen, 
-                        Uint8::to_uchar(out_secret), (uint8_t)secret_length);
+    const uint8_t * const rem_pubKey = Uint8::to_const_uchar(remote_public_key);
+    const size_t rem_pubKeyLen       = remote_public_key.Length();
+    return_status = trustm_ecdh_derive_secret(OPTIGA_KEY_ID_E0F3, (uint8_t*)rem_pubKey, (uint16_t)rem_pubKeyLen, 
+                        out_secret.Bytes(), (uint8_t)secret_length);
  
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL) ;
 
@@ -474,7 +475,7 @@ CHIP_ERROR P256Keypair::NewCertificateSigningRequest(uint8_t * csr, size_t & csr
         ChipLogDetail(Crypto, "NewCertificateSigningRequest : Not hsm key. Using host for CSR");
         return NewCertificateSigningRequest_H(&mKeypair, csr, csr_length);
     }
-    ChipLogDetail(Crypto, "NewCertificateSigningRequest: Using Trust M for CSR Creating!");
+    ChipLogDetail(Crypto, "NewCertificateSigningRequest: Using TrustM for CSR Creating!");
 
     // No extensions are copied
     buffer_index -= kTlvHeader;
