@@ -831,7 +831,7 @@ optiga_lib_status_t trustm_ecdh_derive_secret(optiga_key_id_t optiga_key_id, uin
             break;
         }
 
-        return_status = OPTIGA_LIB_BUSY;
+        optiga_lib_status = OPTIGA_LIB_BUSY;
         return_status = optiga_crypt_ecdh(p_local_crypt, optiga_key_id, &public_key_details, TRUE, shared_secret);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
