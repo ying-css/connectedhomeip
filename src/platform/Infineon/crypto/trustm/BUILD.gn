@@ -47,7 +47,7 @@ static_library("infineon_crypto_lib") {
     "CHIPCryptoPALHsm_P256_trustm.cpp",
     "CHIPCryptoPALHsm_utils_trustm.cpp",
     "DeviceAttestationCredsExampleTrustM.cpp",
-    "DeviceAttestationCredsExampleTrustM.h",
+    "PersistentStorageOperationalKeystoreTrustM.cpp",
   ]
 
   public_deps = [ ":public_headers" ]
