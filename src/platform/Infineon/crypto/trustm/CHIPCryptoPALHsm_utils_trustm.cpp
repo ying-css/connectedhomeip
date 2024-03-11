@@ -835,8 +835,8 @@ optiga_lib_status_t trustm_ecdh_derive_secret(optiga_key_id_t optiga_key_id, uin
         return_status = optiga_crypt_ecdh(p_local_crypt, optiga_key_id, &public_key_details, TRUE, shared_secret);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecdsa_verify api returns error !!!
-            optiga_lib_print_message("optiga_crypt_ecdsa_verify api returns error !!!", OPTIGA_UTIL_SERVICE,
+            // optiga_crypt_ecdh api returns error !!!
+            optiga_lib_print_message("optiga_crypt_ecdh api returns error !!!", OPTIGA_UTIL_SERVICE,
                                      OPTIGA_UTIL_SERVICE_COLOR);
             break;
         }
