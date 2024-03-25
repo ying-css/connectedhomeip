@@ -16,8 +16,6 @@
  */
 
 #include "DeviceAttestationCredsExampleTrustM.h"
-#include <credentials/examples/ExampleDACs.h>
-#include <credentials/examples/ExamplePAI.h>
 #include <crypto/CHIPCryptoPAL.h>
 #include <lib/core/CHIPError.h>
 #include <lib/support/Span.h>

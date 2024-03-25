@@ -24,8 +24,6 @@ if (chip_crypto == "platform") {
 
 source_set("public_headers") {
   sources = [
-    "CHIPCryptoPAL.h",
-    "OperationalKeystore.h",
   ]
 
   public_deps = [
