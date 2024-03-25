@@ -442,13 +442,6 @@ CHIP_ERROR Deserialize_H(P256Keypair * pk, P256PublicKey * mPublicKey, P256Keypa
     bbuf.Put(input.ConstBytes(), mPublicKey->Length());
     VerifyOrExit(bbuf.Fit(), error = CHIP_ERROR_NO_MEMORY);
 
-    printf("\n");
-    for (size_t i = 0; i < mPublicKey->Length(); i++)
-    {
-        printf("0x%02X ", Uint8::to_const_uchar(*mPublicKey)[i]);
-    }
-    printf("\n");
-
     result = mbedtls_ecp_point_read_binary(&keypair->CHIP_CRYPTO_PAL_PRIVATE(grp), &keypair->CHIP_CRYPTO_PAL_PRIVATE(Q),
                                            Uint8::to_const_uchar(*mPublicKey), mPublicKey->Length());
     VerifyOrExit(result == 0, error = CHIP_ERROR_INVALID_ARGUMENT);

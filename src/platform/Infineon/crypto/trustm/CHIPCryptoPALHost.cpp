@@ -83,6 +83,7 @@ typedef struct
 } EntropyContext;
 
 static EntropyContext gsEntropyContext;
+static mbedtls_ccm_context ccm_context;
 
 static void _log_mbedTLS_error(int error_code)
 {
@@ -107,7 +108,6 @@ static bool _isValidTagLength(size_t tag_length)
     }
     return false;
 }
-
 CHIP_ERROR AES_CCM_encrypt(const uint8_t * plaintext, size_t plaintext_length, const uint8_t * aad, size_t aad_length,
                            const Aes128KeyHandle & key, const uint8_t * nonce, size_t nonce_length, uint8_t * ciphertext,
                            uint8_t * tag, size_t tag_length)
@@ -115,8 +115,7 @@ CHIP_ERROR AES_CCM_encrypt(const uint8_t * plaintext, size_t plaintext_length, c
     CHIP_ERROR error = CHIP_NO_ERROR;
     int result       = 1;
 
-    mbedtls_ccm_context context;
-    mbedtls_ccm_init(&context);
+    mbedtls_ccm_init(&ccm_context);
 
     VerifyOrExit(plaintext != nullptr || plaintext_length == 0, error = CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(ciphertext != nullptr || plaintext_length == 0, error = CHIP_ERROR_INVALID_ARGUMENT);
@@ -130,18 +129,18 @@ CHIP_ERROR AES_CCM_encrypt(const uint8_t * plaintext, size_t plaintext_length, c
     }
 
     // Size of key is expressed in bits, hence the multiplication by 8.
-    result = mbedtls_ccm_setkey(&context, MBEDTLS_CIPHER_ID_AES, key.As<Symmetric128BitsKeyByteArray>(), sizeof(Symmetric128BitsKeyByteArray) * 8);
+    result = mbedtls_ccm_setkey(&ccm_context, MBEDTLS_CIPHER_ID_AES, key.As<Symmetric128BitsKeyByteArray>(), sizeof(Symmetric128BitsKeyByteArray) * 8);
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
     // Encrypt
-    result = mbedtls_ccm_encrypt_and_tag(&context, plaintext_length, Uint8::to_const_uchar(nonce), nonce_length,
+    result = mbedtls_ccm_encrypt_and_tag(&ccm_context, plaintext_length, Uint8::to_const_uchar(nonce), nonce_length,
                                          Uint8::to_const_uchar(aad), aad_length, Uint8::to_const_uchar(plaintext),
                                          Uint8::to_uchar(ciphertext), Uint8::to_uchar(tag), tag_length);
     _log_mbedTLS_error(result);
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
 exit:
-    mbedtls_ccm_free(&context);
+    mbedtls_ccm_free(&ccm_context);
     return error;
 }
 
@@ -152,8 +151,7 @@ CHIP_ERROR AES_CCM_decrypt(const uint8_t * ciphertext, size_t ciphertext_len, co
     CHIP_ERROR error = CHIP_NO_ERROR;
     int result       = 1;
 
-    mbedtls_ccm_context context;
-    mbedtls_ccm_init(&context);
+    mbedtls_ccm_init(&ccm_context);
 
     VerifyOrExit(plaintext != nullptr || ciphertext_len == 0, error = CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(ciphertext != nullptr || ciphertext_len == 0, error = CHIP_ERROR_INVALID_ARGUMENT);
@@ -167,18 +165,18 @@ CHIP_ERROR AES_CCM_decrypt(const uint8_t * ciphertext, size_t ciphertext_len, co
     }
 
     // Size of key is expressed in bits, hence the multiplication by 8.
-    result = mbedtls_ccm_setkey(&context, MBEDTLS_CIPHER_ID_AES, key.As<Symmetric128BitsKeyByteArray>(), sizeof(Symmetric128BitsKeyByteArray) * 8);
+    result = mbedtls_ccm_setkey(&ccm_context, MBEDTLS_CIPHER_ID_AES, key.As<Symmetric128BitsKeyByteArray>(), sizeof(Symmetric128BitsKeyByteArray) * 8);
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
     // Decrypt
-    result = mbedtls_ccm_auth_decrypt(&context, ciphertext_len, Uint8::to_const_uchar(nonce), nonce_length,
+    result = mbedtls_ccm_auth_decrypt(&ccm_context, ciphertext_len, Uint8::to_const_uchar(nonce), nonce_length,
                                       Uint8::to_const_uchar(aad), aad_len, Uint8::to_const_uchar(ciphertext),
                                       Uint8::to_uchar(plaintext), Uint8::to_const_uchar(tag), tag_length);
     _log_mbedTLS_error(result);
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
 exit:
-    mbedtls_ccm_free(&context);
+    mbedtls_ccm_free(&ccm_context);
     return error;
 }
 

@@ -117,7 +117,7 @@ CHIP_ERROR ExampleTrustMDACProvider::SignWithDeviceAttestationKey(const ByteSpan
 
     memset(serialized_keypair.Bytes(), 0, Crypto::kP256_PublicKey_Length);
     memcpy(serialized_keypair.Bytes() + Crypto::kP256_PublicKey_Length, trustm_magic_no, sizeof(trustm_magic_no));
-    
+    memcpy(serialized_keypair.Bytes() + (Crypto::kP256_PublicKey_Length + sizeof (trustm_magic_no)), DA_KEY_ID, 2);
 
     ReturnErrorOnFailure(keypair.Deserialize(serialized_keypair));
 
