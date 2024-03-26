@@ -43,6 +43,7 @@ static_library("infineon_crypto_lib") {
     "CHIPCryptoPALHsm_HKDF_trustm.cpp",
     "CHIPCryptoPALHsm_HMAC_trustm.cpp",
     "CHIPCryptoPALHsm_P256_trustm.cpp",
+    "CHIPCryptoPALHsm_rng_trustm.cpp",
     "CHIPCryptoPALHsm_utils_trustm.cpp",
     "DeviceAttestationCredsExampleTrustM.cpp",
   ]

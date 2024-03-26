@@ -75,6 +75,7 @@ void trustm_close(void);
 CHIP_ERROR trustmGetCertificate(uint16_t optiga_oid, uint8_t * buf, uint16_t * buflen);
 optiga_lib_status_t trustm_ecdh_derive_secret(optiga_key_id_t optiga_key_id, uint8_t * public_key, uint16_t public_key_length,
                                               uint8_t * shared_secret, uint8_t shared_secret_length);
+optiga_lib_status_t optiga_crypt_rng(uint8_t * random_data, uint16_t random_data_length);                                              
 optiga_lib_status_t trustm_PBKDF2_HMAC(const unsigned char * salt, size_t slen, unsigned int iteration_count, uint32_t key_length,
                                        unsigned char * output);
 #ifdef __cplusplus

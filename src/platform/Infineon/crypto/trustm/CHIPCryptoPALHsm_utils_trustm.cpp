@@ -536,7 +536,47 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t * input_d
     }
     return return_status;
 }
+optiga_lib_status_t optiga_crypt_rng(uint8_t * random_data, uint16_t random_data_length)
+{
+    optiga_lib_status_t return_status;
+    do
+    {
+        // Create an instance of optiga_crypt_t
+        p_local_crypt = optiga_crypt_create(0, optiga_crypt_callback, NULL);
+        if (NULL == p_local_crypt)
+        {
+            optiga_lib_print_message("optiga_crypt_create failed !!!", OPTIGA_UTIL_SERVICE, OPTIGA_UTIL_SERVICE_COLOR);
+            break;
+        }
 
+        return_status = OPTIGA_LIB_BUSY;
+        return_status = optiga_crypt_random(p_local_crypt,
+                                            OPTIGA_RNG_TYPE_DRNG,
+                                            random_data,
+                                            random_data_length);
+if (OPTIGA_LIB_SUCCESS != return_status)
+        {
+            // optiga_crypt_random api returns error !!!
+            optiga_lib_print_message("optiga_crypt_random api returns error !!!", OPTIGA_UTIL_SERVICE, OPTIGA_UTIL_SERVICE_COLOR);
+            break;
+        }
+
+        while (optiga_lib_status == OPTIGA_LIB_BUSY)
+            ;
+        if (OPTIGA_LIB_SUCCESS != optiga_lib_status)
+        {
+            // optiga_crypt_random failed
+            optiga_lib_print_message("optiga_crypt_random failed", OPTIGA_UTIL_SERVICE, OPTIGA_UTIL_SERVICE_COLOR);
+            break;
+        }
+    } while (0);
+
+    if (p_local_crypt)
+    {
+        optiga_crypt_destroy(p_local_crypt);
+    }
+    return return_status;
+}
 optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, optiga_ecc_curve_t curve_id, uint8_t * pubkey,
                                       uint16_t *pubkey_length)
 {
