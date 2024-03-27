@@ -96,7 +96,7 @@ class InfineonBuilder(GnBuilder):
         if enable_trustm:
             self.extra_gn_options.append('chip_crypto=\"platform\"')
         if enable_trustm is False:
-            self.extra_gn_options.append('chip_crypto=\"\"')
+            self.extra_gn_options.append('chip_crypto=\"mbedtls\"')
     def GnBuildArgs(self):
         return self.extra_gn_options
 
