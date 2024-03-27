@@ -145,43 +145,24 @@ Infineon Hardware Security Module-OPTIGA™ Trust M is a high-end security
 solution that provides an anchor of trust for connecting IoT devices to the
 cloud, giving every IoT device its own unique identity.
 
-For different security use cases, please set the flags in
-CHIPCryptoPALHsm*config.h which is located at */src/crypto/hsm/\_
-
-For device attestation please enable the flag ENABLE*HSM_DEVICE_ATTESTATION in
-CHIPCryptoPALHsm_config.h which is located at */src/crypto/hsm/\_
-
 -   Supported hardware setup:
     [CY8CKIT-062S2-43012](https://www.cypress.com/CY8CKIT-062S2-43012)
 
-    [OPTIGA™ Trust M S2GO](https://www.infineon.com/cms/en/product/evaluation-boards/s2go-security-optiga-m/)
+    [OPTIGA™ Trust M MTR](https://www.infineon.com/cms/en/product/evaluation-boards/trust-m-mtr-shield/)
 
-    [MY IOT ADAPTER](https://www.infineon.com/cms/en/product/evaluation-boards/my-iot-adapter/)
+    [OPTIGA™ Trust Adapter](https://www.infineon.com/cms/en/product/evaluation-boards/optiga-trust-adapter/)
 
 -   Building
 
-    Follow the steps to build:
+    Follow the steps to build with OPTIGA™ Trust M for device attestation use case:
 
     ```
-      $ cd examples/lock-app/infineon/psoc6
-      $ source third_party/conenctedhomeip/scripts/activate.sh
-      $ export PSOC6_BOARD=CY8CKIT-062S2-43012
+      $ source scripts/activate.sh
+      $ scripts/build/build_examples.py --no-log-timestamps --target 'infineon-psoc6-lock-trustm' build
     ```
-
-    Note: export PSOC6_BOARD=CY8CKIT-062S2-43012 is used to set up the
-    development platform and environment to use CY8CKIT-062S2-43012 board for
-    code compilation.
-
-    To enable OPTIGA™ Trust M for device attestation use case:
-
-    ```
-      $ gn gen out/debug --args="chip_enable_infineon_trustm=true chip_enable_infineon_trustm_da=true"
-      $ ninja -C out/debug
-    ```
-
 -   To delete generated executable, libraries and object files use:
 
-        $ cd examples/lock-app/infineon/psoc6
+        $ cd ~/connectedhomeip
         $ rm -rf out/
 
 -   Proceed to OPTIGA™ Trust M Provisioning section to complete the credential
