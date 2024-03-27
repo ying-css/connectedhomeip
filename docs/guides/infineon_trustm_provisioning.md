@@ -7,7 +7,7 @@ OPTIGA&trade; Trust M with Matter test device Attestation certificate is needed.
 
 [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
 
-[OPTIGA™ Trust M S2GO](https://www.infineon.com/cms/en/product/evaluation-boards/s2go-security-optiga-m/)
+[OPTIGA™ Trust M MTR](https://www.infineon.com/cms/en/product/evaluation-boards/trust-m-mtr-shield/)
 
 [Shield2Go Adapter for Raspberry Pi](https://www.infineon.com/cms/en/product/evaluation-boards/s2go-adapter-rasp-pi-iot/)
 or Jumping Wire
