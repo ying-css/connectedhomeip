@@ -74,8 +74,8 @@ CHIP_ERROR HMAC_sha::HMAC_SHA256(const uint8_t * key, size_t key_length, const u
 
     // Trust M init
     trustm_Open();
-    // Write metada for secret OID
-    write_metadata(TRUSTM_HMAC_OID_KEY, metadata_hmac, sizeof(metadata_hmac));
+    // Write metada for secret OID(Done during Provisioning)
+    //write_metadata(TRUSTM_HMAC_OID_KEY, metadata_hmac, sizeof(metadata_hmac));
     // Update the secret key
     write_data(TRUSTM_HMAC_OID_KEY, key, key_length_u16);
 
