@@ -247,8 +247,8 @@ CHIP_ERROR P256Keypair::ECDH_derive_secret(const P256PublicKey & remote_public_k
     memcpy(remote_key, &header, 3);
     memcpy(remote_key+3, rem_pubKey, rem_pubKeyLen);
 
-    return_status = trustm_ecdh_derive_secret(OPTIGA_KEY_ID_E0F3, (uint8_t*)remote_key, (uint16_t)rem_pubKeyLen+3, 
-                        out_secret.Bytes(), (uint8_t)secret_length); 
+    return_status = trustm_ecdh_derive_secret(OPTIGA_KEY_ID_E100, (uint8_t*)remote_key, (uint16_t)rem_pubKeyLen+3, 
+                       out_secret.Bytes(), (uint8_t)secret_length); 
     
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL) ;
 
