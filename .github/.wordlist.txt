@@ -465,6 +465,7 @@ EchoMessage
 EchoRequests
 EchoResponse
 EchoService
+ECW
 edaf
 edc
 EDR
@@ -740,6 +741,7 @@ kCase
 Kconfig
 kDacPublicKey
 KeypadInput
+keypair
 keyset
 kGroup
 kInvalidCommandId
@@ -886,6 +888,7 @@ mlan
 MLD
 mmevk
 moal
+Mobly
 ModeSelect
 modprobe
 Modustoolbox
@@ -950,6 +953,7 @@ nrfdks
 nrfutil
 nrfxlib
 NTAG
+NTP
 nullable
 nullptr
 NUM
@@ -1017,6 +1021,7 @@ OTBR
 otcli
 outform
 outgoingCommands
+overridable
 OxygenConcentrationMeasurement
 OzoneConcentrationMeasurement
 PAA
@@ -1055,6 +1060,7 @@ perfetto
 periodicQueryTimeout
 pexpect
 pickString
+PICSCODE
 PID
 Pigweed
 PinCode
@@ -1370,6 +1376,7 @@ TestGenExample
 TestGroupDemoConfig
 TestMultiRead
 TestName
+TestOnlySendCommandTimedRequestFlagWithNoTimedInvoke
 TESTPASSWD
 TestPICS
 TESTSSID
@@ -1438,6 +1445,7 @@ ttymxc
 ttyUSB
 TurbidityConcentrationMeasurement
 TvCasting
+TVOC
 tvOS
 TXD
 txt

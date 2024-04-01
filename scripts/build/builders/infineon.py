@@ -81,7 +81,7 @@ class InfineonBuilder(GnBuilder):
                  board: InfineonBoard = InfineonBoard.PSOC6BOARD,
                  enable_ota_requestor: bool = False,
                  update_image: bool = False,
-                 enable_trustm: bool = False): 
+                 enable_trustm: bool = False):
         super(InfineonBuilder, self).__init__(
             root=app.BuildRoot(root),
             runner=runner)

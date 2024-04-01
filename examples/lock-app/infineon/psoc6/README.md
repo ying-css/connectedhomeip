@@ -9,13 +9,15 @@ An example showing the use of Matter on the Infineon CY8CKIT-062S2-43012 board.
     -   [Building](#building)
     -   [Flashing the Application](#flashing-the-application)
     -   [Commissioning and cluster control](#commissioning-and-cluster-control)
-        -   [Setting up chip-tool](#setting-up-chip-tool)
+        -   [Setting up Chip tool](#setting-up-chip-tool)
         -   [Commissioning over BLE](#commissioning-over-ble)
             -   [Notes](#notes)
         -   [Cluster control](#cluster-control)
         -   [Factory Reset](#factory-reset)
-    -   [Building with OPTIGA™ Trust M as HSM](#build-trustm-hsm)
-        -   [OPTIGA™ Trust M Provisioning](#provisioning-trustm)
+    -   [](#)
+    -   [Building with OPTIGA™ Trust M as HSM](#building-with-optiga-trust-m-as-hsm)
+        -   [](#-1)
+        -   [OPTIGA™ Trust M Provisioning](#optiga-trust-m-provisioning)
     -   [OTA Software Update](#ota-software-update)
 
 <hr>
@@ -152,14 +154,14 @@ cloud, giving every IoT device its own unique identity.
 
     [OPTIGA™ Trust Adapter](https://www.infineon.com/cms/en/product/evaluation-boards/optiga-trust-adapter/)
 
--   Building
-
-    Follow the steps to build with OPTIGA™ Trust M for device attestation use case:
+-   Building Follow the steps to build with OPTIGA™ Trust M for device
+    attestation use case:
 
     ```
       $ source scripts/activate.sh
       $ scripts/build/build_examples.py --no-log-timestamps --target 'infineon-psoc6-lock-trustm' build
     ```
+
 -   To delete generated executable, libraries and object files use:
 
         $ cd ~/connectedhomeip

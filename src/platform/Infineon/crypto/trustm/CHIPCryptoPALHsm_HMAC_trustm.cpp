@@ -48,12 +48,12 @@ extern CHIP_ERROR HMAC_SHA256_h(const uint8_t * key, size_t key_length, const ui
                                 uint8_t * out_buffer, size_t out_length);
 
 CHIP_ERROR HMAC_sha::HMAC_SHA256(const uint8_t * key, size_t key_length, const uint8_t * message, size_t message_length,
-                                    uint8_t * out_buffer, size_t out_length)
+                                 uint8_t * out_buffer, size_t out_length)
 
 {
 #if !ENABLE_TRUSTM_HMAC_SHA256
     return HMAC_SHA256_h(key, key_length, message, message_length, out_buffer, out_length);
-#else    
+#else
     CHIP_ERROR error                  = CHIP_ERROR_INTERNAL;
     optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
 
@@ -75,7 +75,7 @@ CHIP_ERROR HMAC_sha::HMAC_SHA256(const uint8_t * key, size_t key_length, const u
     // Trust M init
     trustm_Open();
     // Write metada for secret OID(Done during Provisioning)
-    //write_metadata(TRUSTM_HMAC_OID_KEY, metadata_hmac, sizeof(metadata_hmac));
+    // write_metadata(TRUSTM_HMAC_OID_KEY, metadata_hmac, sizeof(metadata_hmac));
     // Update the secret key
     write_data(TRUSTM_HMAC_OID_KEY, key, key_length_u16);
 
@@ -94,7 +94,7 @@ exit:
         trustm_close();
     }
     return error;
-#endif    
+#endif
 }
 
 CHIP_ERROR HMAC_sha::HMAC_SHA256(const Hmac128KeyHandle & key, const uint8_t * message, size_t message_length, uint8_t * out_buffer,
