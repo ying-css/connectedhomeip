@@ -66,10 +66,7 @@ void vApplicationTickHook(void)
         break;                                                                                                                     \
     }                                                                                                                              \
     while (optiga_lib_status == OPTIGA_LIB_BUSY)                                                                                   \
-    {                                                                                                                              \
-        pal_os_event_trigger_registered_callback();                                                                                \
-    }                                                                                                                              \
-                                                                                                                                   \
+    {}                                                                                                                             \
     if (OPTIGA_LIB_SUCCESS != optiga_lib_status)                                                                                   \
     {                                                                                                                              \
         ret = optiga_lib_status;                                                                                                   \
