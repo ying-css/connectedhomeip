@@ -38,7 +38,7 @@
 
 optiga_crypt_t * me_crypt = NULL;
 optiga_util_t * me_util   = NULL;
-static bool trustm_isOpen      = false;
+static bool trustm_isOpen = false;
 #define ENABLE_HMAC_MULTI_STEP (0)
 #define OPTIGA_UTIL_DER_BITSTRING_TAG (0x03)
 #define OPTIGA_UTIL_DER_NUM_UNUSED_BITS (0x00)
@@ -55,9 +55,7 @@ static bool trustm_isOpen      = false;
 
 void vApplicationTickHook(void);
 
-void vApplicationTickHook(void)
-{
-}
+void vApplicationTickHook(void) {}
 
 #define WAIT_FOR_COMPLETION(ret)                                                                                                   \
     if (OPTIGA_LIB_SUCCESS != ret)                                                                                                 \
@@ -65,7 +63,8 @@ void vApplicationTickHook(void)
         break;                                                                                                                     \
     }                                                                                                                              \
     while (optiga_lib_status == OPTIGA_LIB_BUSY)                                                                                   \
-    {}                                                                                                                             \
+    {                                                                                                                              \
+    }                                                                                                                              \
     if (OPTIGA_LIB_SUCCESS != optiga_lib_status)                                                                                   \
     {                                                                                                                              \
         ret = optiga_lib_status;                                                                                                   \
@@ -155,9 +154,9 @@ void trustm_Open(void)
                 printf("optiga_util_open_application api returns error %02X\n", return_status);
                 break;
             }
-            //Wait until the optiga_util_open_application is completed
+            // Wait until the optiga_util_open_application is completed
             WAIT_FOR_COMPLETION(return_status);
-            
+
             if (OPTIGA_LIB_SUCCESS != return_status)
             {
                 // optiga_util_open_application failed
@@ -170,7 +169,7 @@ void trustm_Open(void)
             if (!init)
             {
                 optiga_lib_status = OPTIGA_LIB_BUSY;
-                return_status = optiga_util_write_data(me_util, dOptigaOID, OPTIGA_UTIL_ERASE_AND_WRITE, 0, &cCurrentLimit, 1);
+                return_status     = optiga_util_write_data(me_util, dOptigaOID, OPTIGA_UTIL_ERASE_AND_WRITE, 0, &cCurrentLimit, 1);
                 if (OPTIGA_LIB_SUCCESS != return_status)
                 {
                     printf("optiga_util_write_data api returns error %02X\n", return_status);
@@ -208,20 +207,20 @@ void trustm_close(void)
         }
 
         WAIT_FOR_COMPLETION(return_status);
-        
+
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-           // optiga_util_close_application failed
-           printf("optiga_util_close_application failed\n");
-           break;
-         }
-        
+            // optiga_util_close_application failed
+            printf("optiga_util_close_application failed\n");
+            break;
+        }
+
         // destroy util and crypt instances
         optiga_util_destroy(me_util);
         optiga_crypt_destroy(me_crypt);
         pal_os_event_destroy(NULL);
-        me_util = NULL;
-        me_crypt = NULL;
+        me_util       = NULL;
+        me_crypt      = NULL;
         trustm_isOpen = false;
         return_status = OPTIGA_LIB_SUCCESS;
     } while (0);
@@ -250,7 +249,7 @@ void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_data returns error 
+            // optiga_util_read_data returns error
             printf("read_certificate_from_optiga failed\n");
             break;
         }
@@ -436,8 +435,8 @@ optiga_lib_status_t hmac_sha256(optiga_hmac_type_t type, const uint8_t * input_d
                     // End HMAC sequence and return the MAC generated
                     // printf("HMAC Finalize\n");
                     optiga_lib_status = OPTIGA_LIB_BUSY;
-                    return_status = optiga_crypt_hmac_finalize(me_crypt, (input_data + (input_data_length - remainingLen)),
-                                                               dataLenTemp, mac, mac_length);
+                    return_status     = optiga_crypt_hmac_finalize(me_crypt, (input_data + (input_data_length - remainingLen)),
+                                                                   dataLenTemp, mac, mac_length);
                     if (OPTIGA_LIB_SUCCESS != return_status)
                     {
                         // optiga_crypt_hmac_finalize returns error !!!
@@ -482,7 +481,7 @@ optiga_lib_status_t optiga_crypt_rng(uint8_t * random_data, uint16_t random_data
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
-        return_status = optiga_crypt_random(me_crypt, OPTIGA_RNG_TYPE_DRNG, random_data, random_data_length);
+        return_status     = optiga_crypt_random(me_crypt, OPTIGA_RNG_TYPE_DRNG, random_data, random_data_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
             // optiga_crypt_random returns error !!!
@@ -514,8 +513,8 @@ optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, 
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
-        return_status = optiga_crypt_ecc_generate_keypair(me_crypt, curve_id, key_type, FALSE, &optiga_key_id, (pubkey + i),
-                                                          pubkey_length);
+        return_status =
+            optiga_crypt_ecc_generate_keypair(me_crypt, curve_id, key_type, FALSE, &optiga_key_id, (pubkey + i), pubkey_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
             // optiga_crypt_ecc_generate_keypair api returns error !!!
@@ -592,7 +591,7 @@ optiga_lib_status_t trustm_ecdsa_sign(optiga_key_id_t optiga_key_id, uint8_t * d
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
-        return_status = optiga_crypt_ecdsa_sign(me_crypt, digest, digest_length, optiga_key_id, signature, signature_length);
+        return_status     = optiga_crypt_ecdsa_sign(me_crypt, digest, digest_length, optiga_key_id, signature, signature_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
             // optiga_crypt_ecdsa_sign api returns error !!!
@@ -639,7 +638,7 @@ void ecc_pub_key_bit(uint8_t * q_buffer, uint8_t q_length, uint8_t * pub_key_buf
 }
 optiga_lib_status_t trustm_ecdsa_verify(uint8_t * digest, uint8_t digest_length, uint8_t * signature, uint16_t signature_length,
                                         uint8_t * ecc_pubkey, uint8_t ecc_pubkey_length)
-{  
+{
     optiga_lib_status_t return_status;
     uint8_t ecc_public_key[70] = { 0x00 };
     uint16_t i;
@@ -657,8 +656,8 @@ optiga_lib_status_t trustm_ecdsa_verify(uint8_t * digest, uint8_t digest_length,
         }
 
         optiga_lib_status = OPTIGA_LIB_BUSY;
-        return_status = optiga_crypt_ecdsa_verify(me_crypt, digest, digest_length, signature, signature_length,
-                                                  OPTIGA_CRYPT_HOST_DATA, &public_key_details);
+        return_status     = optiga_crypt_ecdsa_verify(me_crypt, digest, digest_length, signature, signature_length,
+                                                      OPTIGA_CRYPT_HOST_DATA, &public_key_details);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
             // optiga_crypt_ecdsa_verify api returns error !!!
@@ -782,14 +781,14 @@ optiga_lib_status_t trustm_PBKDF2_HMAC(const unsigned char * salt, size_t slen, 
         {
             optiga_lib_status = OPTIGA_LIB_BUSY;
             // Calculated subsequent U, which ends up in md1
-            return_status = optiga_crypt_hmac(me_crypt, OPTIGA_HMAC_SHA_256, TRUSTM_HMAC_OID_KEY, md1, md1_len, md1, &md1_len); 
+            return_status = optiga_crypt_hmac(me_crypt, OPTIGA_HMAC_SHA_256, TRUSTM_HMAC_OID_KEY, md1, md1_len, md1, &md1_len);
             if (OPTIGA_LIB_SUCCESS != return_status)
             {
-            // optiga_crypt_hmac api returns error !!!
-            printf("optiga_crypt_hmac api 2 error %02X\n", return_status);
-            break;
+                // optiga_crypt_hmac api returns error !!!
+                printf("optiga_crypt_hmac api 2 error %02X\n", return_status);
+                break;
             }
-            WAIT_FOR_COMPLETION(return_status);         
+            WAIT_FOR_COMPLETION(return_status);
             if (OPTIGA_LIB_SUCCESS != return_status)
             {
                 printf("optiga_crypt_hmac 2 returns error\n");

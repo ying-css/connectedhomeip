@@ -277,7 +277,7 @@ CHIP_ERROR P256PublicKey::ECDSA_validate_hash_signature(const uint8_t * hash, si
     size_t signature_trustm_len                               = sizeof(signature_trustm);
     MutableByteSpan out_der_sig_span(signature_trustm, signature_trustm_len);
 
-    uint8_t hash_length_u8            = static_cast<uint8_t>(hash_length);
+    uint8_t hash_length_u8 = static_cast<uint8_t>(hash_length);
 
     VerifyOrReturnError(hash != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(hash_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
