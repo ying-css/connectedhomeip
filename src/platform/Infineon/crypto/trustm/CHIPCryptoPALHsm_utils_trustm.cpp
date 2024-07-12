@@ -111,9 +111,7 @@ void trustm_Open(void)
 {
     uint16_t dOptigaOID = 0xE0C4;
     // Maximum Power, Minimum Current limitation
-    const uint8_t current_limit [] = {
-    0x0F,
-    };
+    uint8_t cCurrentLimit = 15;
 
     if (!trustm_isOpen)
     {
@@ -169,10 +167,21 @@ void trustm_Open(void)
             trustm_isOpen = true;
 
             // Only run once for initialisation
-           if (!init)
+            if (!init)
             {
-                // Set current limit for high performance
-                write_data(dOptigaOID, current_limit, sizeof(current_limit));
+                optiga_lib_status = OPTIGA_LIB_BUSY;
+                return_status = optiga_util_write_data(me_util, dOptigaOID, OPTIGA_UTIL_ERASE_AND_WRITE, 0, &cCurrentLimit, 1);
+                if (OPTIGA_LIB_SUCCESS != return_status)
+                {
+                    printf("optiga_util_write_data api returns error %02X\n", return_status);
+                    break;
+                }
+                WAIT_FOR_COMPLETION(return_status);
+                if (OPTIGA_LIB_SUCCESS != return_status)
+                {
+                    printf("optiga_util_write_data returns error\n");
+                    break;
+                }
                 // Set init to true
                 init = true;
             }
