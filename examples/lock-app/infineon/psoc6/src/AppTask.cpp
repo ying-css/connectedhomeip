@@ -47,6 +47,7 @@
 
 #if ENABLE_DEVICE_ATTESTATION
 #include <DeviceAttestationCredsExampleTrustM.h>
+#include <TrustMPersistentStorageOperationalKeystore.h>
 #endif
 
 /* OTA related includes */
@@ -155,6 +156,14 @@ static void InitServer(intptr_t context)
     // Init ZCL Data Model
     static chip::CommonCaseDeviceServerInitParams initParams;
     (void) initParams.InitializeStaticResourcesBeforeServerInit();
+
+#if ENABLE_DEVICE_ATTESTATION
+    static chip::TrustMPersistentStorageOperationalKeystore sTrustMPersistentStorageOpKeystore;
+    VerifyOrDie((sTrustMPersistentStorageOpKeystore.Init(initParams.persistentStorageDelegate)) == CHIP_NO_ERROR);
+    initParams.operationalKeystore = &sTrustMPersistentStorageOpKeystore;
+#endif
+
+
     chip::Server::GetInstance().Init(initParams);
 
     gExampleDeviceInfoProvider.SetStorageDelegate(&Server::GetInstance().GetPersistentStorage());
