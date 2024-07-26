@@ -110,7 +110,7 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
 
     if (key_target == ECPKeyTarget::ECDSA)
     {
-        // Use the software based method
+        // Use the mbedtls based method
         if (CHIP_NO_ERROR == Initialize_H(this, &mPublicKey, &mKeypair))
         {
             mInitialized = true;
@@ -208,7 +208,7 @@ CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P
         }
         return error;
     }
-    // Use the software based one
+    // Use the mbedtls based method
     else
     {
         printf("ECDSA sing msg sw\n");
