@@ -93,14 +93,12 @@ static CHIP_ERROR get_trustm_keyid_from_keypair(const P256KeypairContext mKeypai
 
 P256Keypair::~P256Keypair()
 {
-    // Add method to get the keyid
     if (CHIP_NO_ERROR != get_trustm_keyid_from_keypair(mKeypair, &keyid))
     {
         Clear();
     }
     else
     {
-        // Delete the key in SE
     }
 }
 
@@ -110,6 +108,7 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
 
     if (key_target == ECPKeyTarget::ECDSA)
     {
+        printf("Generating ECDSA key");
         // Use the mbedtls based method
         if (CHIP_NO_ERROR == Initialize_H(this, &mPublicKey, &mKeypair))
         {
@@ -166,7 +165,9 @@ CHIP_ERROR P256Keypair::Initialize(ECPKeyTarget key_target)
 
 CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P256ECDSASignature & out_signature) const
 {
+    VerifyOrReturnError(mInitialized, CHIP_ERROR_UNINITIALIZED);
     uint16_t keyid = (mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET+1]) | (mKeypair.mBytes[CRYPTO_KEYPAIR_KEYID_OFFSET] << 8);
+    
     // Check if there is any matching key_id to Optiga OID
     if (keyid == OPTIGA_KEY_ID_E0F0)
     {
@@ -211,9 +212,8 @@ CHIP_ERROR P256Keypair::ECDSA_sign_msg(const uint8_t * msg, size_t msg_length, P
     // Use the mbedtls based method
     else
     {
-        printf("ECDSA sing msg sw\n");
+        printf("ECDSA sing msg mbedtls\n");
         return ECDSA_sign_msg_H(&mKeypair, msg, msg_length, out_signature);
-
     }
 }
 
@@ -306,6 +306,13 @@ CHIP_ERROR P256Keypair::Serialize(P256SerializedKeypair & output) const
     uint8_t privkey[kP256_PrivateKey_Length] = {
         0,
     };
+    
+    if (0 != memcmp(&mKeypair.mBytes[0], trustm_magic_no, sizeof(trustm_magic_no)))
+    {
+        VerifyOrReturnError(mInitialized, CHIP_ERROR_UNINITIALIZED);
+        return Serialize_H(mKeypair, mPublicKey, output);
+        
+    }
 
     /* Set the public key */
     P256PublicKey & public_key = const_cast<P256PublicKey &>(Pubkey());
