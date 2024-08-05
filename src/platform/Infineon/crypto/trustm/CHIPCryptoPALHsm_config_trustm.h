@@ -47,7 +47,6 @@
  */
 #define ENABLE_TRUSTM_DEVICE_ATTESTATION 1
 
-
 /*
  * Enable trustm for NOC key-pair generation
  */
