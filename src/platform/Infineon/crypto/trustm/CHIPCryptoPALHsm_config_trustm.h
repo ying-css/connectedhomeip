@@ -48,6 +48,8 @@
 #define ENABLE_TRUSTM_DEVICE_ATTESTATION 1
 
 /*
- * Enable trustm for NOC key-pair generation
+ * Enable trustm for Random Number Generation (DRBG)
+ * Disabled: TrustM is registered as an entropy source for the mbedtls CTR-DRBG
+ * via add_entropy_source() in PlatformManagerImpl::_InitChipStack(). 
  */
-#define ENABLE_TRUSTM_NOC_KEYGEN 0
+#define ENABLE_TRUSTM_RANDOM 1

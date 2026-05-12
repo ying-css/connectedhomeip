@@ -30,9 +30,7 @@ can be used to perform provisioning by following the steps mentioned below.
 
 ```
  $ cd linux-optiga-trust-m/
- $ git checkout provider_dev
- $ git submodule update -f
- $ ./provider_installation_script.sh
+ $ ./trustm_installation_script.sh
 ```
 
 -   Run the script to generate Matter test DAC for lock-app using the public key
