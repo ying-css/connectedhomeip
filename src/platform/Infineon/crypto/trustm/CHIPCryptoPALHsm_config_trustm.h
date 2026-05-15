@@ -34,11 +34,13 @@
 
 /*
  * Enable trustm for HKDF SHA256
+ * Ensure that TRUSTM_HKDF_OID_KEY is provisioned before enabling this option
  */
 #define ENABLE_TRUSTM_HKDF_SHA256 0
 
 /*
  * Enable trustm for HMAC SHA256
+ * Ensure that TRUSTM_HMAC_OID_KEY is provisioned before enabling this option
  */
 #define ENABLE_TRUSTM_HMAC_SHA256 0
 

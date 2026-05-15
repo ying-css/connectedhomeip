@@ -79,6 +79,7 @@ CHIP_ERROR HMAC_sha::HMAC_SHA256(const uint8_t * key, size_t key_length, const u
 exit:
     if (error != CHIP_NO_ERROR)
     {
+        ClearSecretData(out_buffer, out_length);
         trustm_close();
     }
     return error;

@@ -83,6 +83,7 @@ CHIP_ERROR HKDF_sha::HKDF_SHA256(const uint8_t * secret, const size_t secret_len
 exit:
     if (error != CHIP_NO_ERROR)
     {
+        ClearSecretData(out_buffer, out_length);
         trustm_close();
     }
     return error;
