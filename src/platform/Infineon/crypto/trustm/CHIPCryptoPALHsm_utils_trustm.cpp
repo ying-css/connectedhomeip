@@ -31,6 +31,7 @@
 #include "optiga_util.h"
 #include "pal.h"
 #include "pal_ifx_i2c_config.h"
+#include "pal_os_datastore.h"
 #include "pal_os_event.h"
 #include "pal_os_memory.h"
 #include "pal_os_timer.h"
@@ -116,7 +117,7 @@ optiga_lib_status_t trustm_Open(void)
     uint16_t dOptigaOID = 0xE0C4;
     // Maximum Power, Minimum Current limitation
     uint8_t cCurrentLimit = 15;
-    optiga_lib_status_t return_status = OPTIGA_LIB_SUCCESS;
+    optiga_lib_status_t return_status = OPTIGA_LIB_BUSY;
 
     if (!trustm_isOpen)
     {
@@ -134,7 +135,7 @@ optiga_lib_status_t trustm_Open(void)
             }
             else
             {
-                ChipLogDetail(Crypto, "me_crypt handle reused after trustm_close()");
+                ChipLogDetail(Crypto, "me_crypt already initialised");
             }
             // Create Optiga Util instance
             if (me_util == NULL)
@@ -148,7 +149,7 @@ optiga_lib_status_t trustm_Open(void)
             }
             else
             {
-                ChipLogDetail(Crypto, "me_util handle reused after trustm_close()");
+                ChipLogDetail(Crypto, "me_util already initialised");
             }
             /**
              * Open the application on OPTIGA which is a precondition to perform any other operations
@@ -176,6 +177,10 @@ optiga_lib_status_t trustm_Open(void)
             if (!init)
             {
                 optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+                OPTIGA_UTIL_SET_COMMS_PROTOCOL_VERSION(me_util, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+                OPTIGA_UTIL_SET_COMMS_PROTECTION_LEVEL(me_util, OPTIGA_COMMS_NO_PROTECTION);
+#endif
                 return_status     = optiga_util_write_data(me_util, dOptigaOID, OPTIGA_UTIL_ERASE_AND_WRITE, 0, &cCurrentLimit, 1);
                 if (OPTIGA_LIB_SUCCESS != return_status)
                 {
@@ -191,7 +196,13 @@ optiga_lib_status_t trustm_Open(void)
                 // Set init to true
                 init = true;
             }
+
         } while (0);
+    }
+    // Trust M is already open, return success
+    else
+    {
+        return_status = OPTIGA_LIB_SUCCESS;
     }
 
     return return_status;
@@ -249,6 +260,10 @@ void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_UTIL_SET_COMMS_PROTOCOL_VERSION(me_util, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_UTIL_SET_COMMS_PROTECTION_LEVEL(me_util, OPTIGA_COMMS_NO_PROTECTION);
+#endif
         return_status     = optiga_util_read_data(me_util, optiga_oid, 0, ifx_cert_hex, &ifx_cert_hex_len);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
@@ -258,7 +273,6 @@ void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_data returns error
             ChipLogError(Crypto, "read_certificate_from_optiga failed");
             break;
         }
@@ -304,6 +318,10 @@ optiga_lib_status_t write_data(uint16_t optiga_oid, const uint8_t * p_data, uint
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_UTIL_SET_COMMS_PROTOCOL_VERSION(me_util, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_UTIL_SET_COMMS_PROTECTION_LEVEL(me_util, OPTIGA_COMMS_FULL_PROTECTION);
+#endif
         return_status     = optiga_util_write_data(me_util, optiga_oid, OPTIGA_UTIL_ERASE_AND_WRITE, 0, p_data, length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
@@ -330,6 +348,10 @@ void write_metadata(uint16_t optiga_oid, const uint8_t * p_data, uint8_t length)
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_UTIL_SET_COMMS_PROTOCOL_VERSION(me_util, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_UTIL_SET_COMMS_PROTECTION_LEVEL(me_util, OPTIGA_COMMS_FULL_PROTECTION);
+#endif
         return_status     = optiga_util_write_metadata(me_util, optiga_oid, p_data, length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
@@ -353,6 +375,10 @@ optiga_lib_status_t deriveKey_HKDF(const uint8_t * salt, uint16_t salt_length, c
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_FULL_PROTECTION);
+#endif
         return_status     = optiga_crypt_hkdf(me_crypt, OPTIGA_HKDF_SHA_256, TRUSTM_HKDF_OID_KEY, /* Input secret OID */
                                               salt, salt_length, info, info_length, derived_key_length, TRUE, derived_key);
         if (OPTIGA_LIB_SUCCESS != return_status)
@@ -496,17 +522,19 @@ optiga_lib_status_t optiga_crypt_rng(uint8_t * random_data, uint16_t random_data
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_NO_PROTECTION);
+#endif
         return_status     = optiga_crypt_random(me_crypt, OPTIGA_RNG_TYPE_DRNG, random_data, random_data_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_random returns error !!!
             ChipLogError(Crypto, "optiga_crypt_random api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_random failed
             ChipLogError(Crypto, "optiga_crypt_random returns error");
             break;
         }
@@ -528,18 +556,20 @@ optiga_lib_status_t trustm_ecc_keygen(uint16_t optiga_key_id, uint8_t key_type, 
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_FULL_PROTECTION);
+#endif
         return_status =
             optiga_crypt_ecc_generate_keypair(me_crypt, curve_id, key_type, FALSE, &optiga_key_id, (pubkey + i), pubkey_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecc_generate_keypair api returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecc_generate_keypair api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecc_generate_keypair returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecc_generate_keypair returns error");
             break;
         }
@@ -558,17 +588,19 @@ void trustmGetKey(uint16_t optiga_oid, uint8_t * pubkey, uint16_t * pubkeyLen)
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_UTIL_SET_COMMS_PROTOCOL_VERSION(me_util, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_UTIL_SET_COMMS_PROTECTION_LEVEL(me_util, OPTIGA_COMMS_NO_PROTECTION);
+#endif
         return_status     = optiga_util_read_data(me_util, optiga_oid, offset, pubkey, pubkeyLen);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_data api returns error !!!
             ChipLogError(Crypto, "optiga_util_read_data api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_pubkey returns error !!!
             ChipLogError(Crypto, "optiga_util_read_pubkey returns error");
             break;
         }
@@ -583,17 +615,19 @@ optiga_lib_status_t trustm_hash(uint8_t * msg, uint16_t msg_length, uint8_t * di
         hash_data_host.buffer = msg;
         hash_data_host.length = msg_length;
         optiga_lib_status     = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_NO_PROTECTION);
+#endif
         return_status = optiga_crypt_hash(me_crypt, OPTIGA_HASH_TYPE_SHA_256, OPTIGA_CRYPT_HOST_DATA, &hash_data_host, digest);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_hash api returns error !!!
             ChipLogError(Crypto, "optiga_crypt_hash api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_hash api returns error !!!
             ChipLogError(Crypto, "optiga_crypt_hash returns error");
             break;
         }
@@ -609,17 +643,19 @@ optiga_lib_status_t trustm_ecdsa_sign(optiga_key_id_t optiga_key_id, uint8_t * d
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_FULL_PROTECTION);
+#endif
         return_status     = optiga_crypt_ecdsa_sign(me_crypt, digest, digest_length, optiga_key_id, signature, signature_length);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecdsa_sign api returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecdsa_sign api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecdsa_sign returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecdsa_sign returns error");
             break;
         }
@@ -674,18 +710,20 @@ optiga_lib_status_t trustm_ecdsa_verify(uint8_t * digest, uint8_t digest_length,
         }
 
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_NO_PROTECTION);
+#endif
         return_status     = optiga_crypt_ecdsa_verify(me_crypt, digest, digest_length, signature, signature_length,
                                                       OPTIGA_CRYPT_HOST_DATA, &public_key_details);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecdsa_verify api returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecdsa_verify api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecdsa_verify returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecdsa_verify returns error");
             break;
         }
@@ -712,17 +750,19 @@ CHIP_ERROR trustmGetCertificate(uint16_t optiga_oid, uint8_t * buf, uint16_t * b
             break;
         }
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        OPTIGA_UTIL_SET_COMMS_PROTOCOL_VERSION(me_util, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_UTIL_SET_COMMS_PROTECTION_LEVEL(me_util, OPTIGA_COMMS_NO_PROTECTION);
+#endif
         return_status     = optiga_util_read_data(me_util, optiga_oid, 0, ifx_cert_hex, &ifx_cert_hex_len);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_data api returns error !!!
             ChipLogError(Crypto, "optiga_util_read_data api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_data failed
             ChipLogError(Crypto, "trustmGetCertificate failed");
             break;
         }
@@ -752,17 +792,20 @@ optiga_lib_status_t trustm_ecdh_derive_secret(optiga_key_id_t optiga_key_id, uin
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
+#ifdef OPTIGA_COMMS_SHIELDED_CONNECTION
+        // ECDH uses a private key: protect the command and the response (shared secret).
+        OPTIGA_CRYPT_SET_COMMS_PROTOCOL_VERSION(me_crypt, OPTIGA_COMMS_PROTOCOL_VERSION_PRE_SHARED_SECRET);
+        OPTIGA_CRYPT_SET_COMMS_PROTECTION_LEVEL(me_crypt, OPTIGA_COMMS_FULL_PROTECTION);
+#endif
         return_status     = optiga_crypt_ecdh(me_crypt, optiga_key_id, &public_key_details, TRUE, shared_secret);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_util_read_data api returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecdh api error %02X", return_status);
             break;
         }
         WAIT_FOR_COMPLETION(return_status);
         if (OPTIGA_LIB_SUCCESS != return_status)
         {
-            // optiga_crypt_ecdh returns error !!!
             ChipLogError(Crypto, "optiga_crypt_ecdh returns error");
             break;
         }
@@ -784,8 +827,6 @@ int trustm_entropy_source(void * /* data */, unsigned char * output, size_t len,
     constexpr uint16_t kMax = 256;
     *olen                   = 0;
 
-    // TrustM session must be open before calling optiga_crypt_rng.
-    // trustm_Open() is idempotent (guarded by trustm_isOpen).
     if (trustm_Open() != OPTIGA_LIB_SUCCESS)
     {
         return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;

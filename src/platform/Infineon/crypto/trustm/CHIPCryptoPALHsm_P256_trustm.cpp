@@ -224,28 +224,27 @@ CHIP_ERROR P256Keypair::ECDH_derive_secret(const P256PublicKey & remote_public_k
     }
 
     ChipLogDetail(Crypto, "TrustM: ECDH_derive_secret");
+
+    const uint8_t * const rem_pubKey = Uint8::to_const_uchar(remote_public_key);
+    const size_t rem_pubKeyLen       = remote_public_key.Length();
+    uint8_t remote_key[68];
+    uint8_t header[3] = { 0x03, 0x42, 0x00 };
+
     return_status = trustm_Open();
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
 
-    {
-        const uint8_t * const rem_pubKey = Uint8::to_const_uchar(remote_public_key);
-        const size_t rem_pubKeyLen       = remote_public_key.Length();
+    VerifyOrExit(rem_pubKeyLen <= (sizeof(remote_key) - sizeof(header)), error = CHIP_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(secret_length <= UINT8_MAX, error = CHIP_ERROR_BUFFER_TOO_SMALL);
 
-        uint8_t remote_key[68];
-        uint8_t header[3] = { 0x03, 0x42, 0x00 };
+    memcpy(remote_key, &header, sizeof(header));
+    memcpy(remote_key + sizeof(header), rem_pubKey, rem_pubKeyLen);
 
-        VerifyOrExit(rem_pubKeyLen <= (sizeof(remote_key) - sizeof(header)), error = CHIP_ERROR_INVALID_ARGUMENT);
-        VerifyOrExit(secret_length <= UINT8_MAX, error = CHIP_ERROR_BUFFER_TOO_SMALL);
-
-        memcpy(remote_key, &header, sizeof(header));
-        memcpy(remote_key + sizeof(header), rem_pubKey, rem_pubKeyLen);
-
-        return_status = trustm_ecdh_derive_secret(static_cast<optiga_key_id_t>(TRUSTM_ECDH_OID_KEY), (uint8_t *) remote_key,
+    return_status = trustm_ecdh_derive_secret(static_cast<optiga_key_id_t>(TRUSTM_ECDH_OID_KEY), (uint8_t *) remote_key,
                                                   static_cast<uint16_t>(rem_pubKeyLen + sizeof(header)), out_secret.Bytes(),
                                                   static_cast<uint8_t>(secret_length));
-        VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
-        SuccessOrExit(error = out_secret.SetLength(secret_length));
-    }
+    VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
+    SuccessOrExit(error = out_secret.SetLength(secret_length));
+
     error = CHIP_NO_ERROR;
 
 exit:
@@ -272,26 +271,26 @@ CHIP_ERROR P256PublicKey::ECDSA_validate_hash_signature(const uint8_t * hash, si
     VerifyOrReturnError(hash_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(hash_length <= UINT8_MAX, CHIP_ERROR_INVALID_ARGUMENT);
 
-    {
-        uint8_t hash_length_u8 = static_cast<uint8_t>(hash_length);
 
-        ChipLogDetail(Crypto, "TrustM: ECDSA_validate_hash_signature");
+    uint8_t hash_length_u8 = static_cast<uint8_t>(hash_length);
 
-        // Trust M init
-        return_status = trustm_Open();
-        VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
-        error = EcdsaRawSignatureToAsn1(kP256_FE_Length,
-                                        ByteSpan{ Uint8::to_const_uchar(signature.ConstBytes()), signature.Length() },
-                                        out_der_sig_span);
-        SuccessOrExit(error);
+    ChipLogDetail(Crypto, "TrustM: ECDSA_validate_hash_signature");
 
-        signature_trustm_len = out_der_sig_span.size();
-        VerifyOrExit(signature_trustm_len <= UINT16_MAX, error = CHIP_ERROR_INTERNAL);
-        // ECC verify
-        return_status = trustm_ecdsa_verify((uint8_t *) hash, hash_length_u8, (uint8_t *) signature_trustm,
-                                            static_cast<uint16_t>(signature_trustm_len), (uint8_t *) bytes,
-                                            (uint8_t) kP256_PublicKey_Length);
-    }
+    // Trust M init
+    return_status = trustm_Open();
+    VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
+    error = EcdsaRawSignatureToAsn1(kP256_FE_Length,
+                                    ByteSpan{ Uint8::to_const_uchar(signature.ConstBytes()), signature.Length() },
+                                    out_der_sig_span);
+    SuccessOrExit(error);
+
+    signature_trustm_len = out_der_sig_span.size();
+    VerifyOrExit(signature_trustm_len <= UINT16_MAX, error = CHIP_ERROR_INTERNAL);
+    // ECC verify
+    return_status = trustm_ecdsa_verify((uint8_t *) hash, hash_length_u8, (uint8_t *) signature_trustm,
+                                        static_cast<uint16_t>(signature_trustm_len), (uint8_t *) bytes,
+                                        (uint8_t) kP256_PublicKey_Length);
+
 
     VerifyOrExit(return_status == OPTIGA_LIB_SUCCESS, error = CHIP_ERROR_INTERNAL);
     error = CHIP_NO_ERROR;

@@ -62,4 +62,19 @@ and test CD into OPTIGA&trade; Trust M Arbitrary OID 0xF1E0._
 
 For certificate claim and OPTIGA&trade; Trust M MTR provisioning, please refer
 to our
-[README for Late-stage Provisioning](https://github.com/Infineon/linux-optiga-trust-m/blob/provider_dev/scripts/matter_provisioning/README.md#certificate-claiming)
+[README for Late-stage Provisioning](https://github.com/Infineon/linux-optiga-trust-m/tree/master/scripts/matter_provisioning#certificate-claiming)
+
+To provision OPTIGA&trade; Trust M for HMAC usage in the Matter SDK, run the script below:
+
+```
+$ cd scripts/matter_provisioning/
+$ ./matter_HMAC_provisioning.sh
+```
+
+To provision OPTIGA&trade; Trust M for HKDF usage in the Matter SDK, run the script below:
+
+```
+$ cd scripts/matter_provisioning/
+$ ./matter_HKDF_provisioning.sh
+```
+

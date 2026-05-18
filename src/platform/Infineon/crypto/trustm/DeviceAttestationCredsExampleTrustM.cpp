@@ -150,11 +150,6 @@ DeviceAttestationCredentialsProvider * GetExampleTrustMDACProvider()
 CHIP_ERROR PreloadTrustMAttestationCerts()
 {
     // Read PAI, DAC, and CD from TrustM into RAM before BLE advertising starts.
-    // This is called from InitServer() while the CHIP event loop is idle (no
-    // MRP timers, no BLE activity), so TrustM I2C completes without contention.
-    // All subsequent requests during commissioning are served from cache,
-    // eliminating TrustM I2C blocking on the CHIP event loop entirely for
-    // the cert-read commissioning steps.
     gPAICertLen = sizeof(gPAICertBuf);
     ReturnErrorOnFailure(trustmGetCertificate(PAI_CERT_ID, gPAICertBuf, &gPAICertLen));
 
