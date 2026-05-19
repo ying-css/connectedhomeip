@@ -20,7 +20,7 @@
 #include <protocols/interaction_model/StatusCode.h>
 
 namespace chip {
-namespace Test {
+namespace Testing {
 
 /// A provider that is emtpy - it contains no endpoints and most
 /// calls fail with `Unsupported Endpoint`
@@ -33,10 +33,8 @@ class EmptyProvider : public app::DataModel::Provider
 public:
     using ActionReturnStatus = app::DataModel::ActionReturnStatus;
 
-    CHIP_ERROR Shutdown() override;
     CHIP_ERROR Endpoints(ReadOnlyBufferBuilder<app::DataModel::EndpointEntry> & builder) override;
 
-    CHIP_ERROR SemanticTags(EndpointId endpointId, ReadOnlyBufferBuilder<SemanticTag> & builder) override;
     CHIP_ERROR DeviceTypes(EndpointId endpointId, ReadOnlyBufferBuilder<app::DataModel::DeviceTypeEntry> & builder) override;
     CHIP_ERROR ClientClusters(EndpointId endpointId, ReadOnlyBufferBuilder<ClusterId> & builder) override;
     CHIP_ERROR ServerClusters(EndpointId endpointId, ReadOnlyBufferBuilder<app::DataModel::ServerClusterEntry> & builder) override;
@@ -49,11 +47,9 @@ public:
     CHIP_ERROR GeneratedCommands(const app::ConcreteClusterPath & path, ReadOnlyBufferBuilder<CommandId> & builder) override;
     CHIP_ERROR AcceptedCommands(const app::ConcreteClusterPath & path,
                                 ReadOnlyBufferBuilder<app::DataModel::AcceptedCommandEntry> & builder) override;
-    void ListAttributeWriteNotification(const app::ConcreteAttributePath & aPath,
-                                        app::DataModel::ListWriteOperation opType) override
+    void ListAttributeWriteNotification(const app::ConcreteAttributePath & aPath, app::DataModel::ListWriteOperation opType,
+                                        FabricIndex accessingFabric) override
     {}
-
-    void Temporary_ReportAttributeChanged(const app::AttributePathParams & path) override;
 
     ActionReturnStatus ReadAttribute(const app::DataModel::ReadAttributeRequest & request,
                                      app::AttributeValueEncoder & encoder) override;
@@ -63,5 +59,5 @@ public:
                                                     chip::TLV::TLVReader & input_arguments, app::CommandHandler * handler) override;
 };
 
-} // namespace Test
+} // namespace Testing
 } // namespace chip

@@ -34,9 +34,10 @@
 
 #include <app-common/zap-generated/attributes/Accessors.h>
 #include <app/clusters/on-off-server/on-off-server.h>
+#include <app/persistence/AttributePersistenceProviderInstance.h>
+#include <app/persistence/DefaultAttributePersistenceProvider.h>
+#include <app/persistence/DeferredAttributePersistenceProvider.h>
 #include <app/server/Server.h>
-#include <app/util/persistence/DefaultAttributePersistenceProvider.h>
-#include <app/util/persistence/DeferredAttributePersistenceProvider.h>
 
 using namespace ::chip;
 using namespace ::chip::app;
@@ -131,7 +132,7 @@ CHIP_ERROR AppTask::Init()
     }
 
     // Init ZCL Data Model and start server
-    PlatformMgr().ScheduleWork(AppTask::InitServerWrapper, 0);
+    TEMPORARY_RETURN_IGNORED PlatformMgr().ScheduleWork(AppTask::InitServerWrapper, 0);
 
     // Setup powercycle reset expired handler
     gpAppFramework_SetResetExpiredHandler(AppTask::PowerCycleExpiredHandlerWrapper);
@@ -161,7 +162,7 @@ void AppTask::InitServer(intptr_t arg)
     if (chip::Server::GetInstance().GetFabricTable().FabricCount() == 0)
     {
         ChipLogProgress(NotSpecified, "No fabrics, starting commissioning.");
-        PlatformMgr().ScheduleWork(OpenCommissioning, 0);
+        TEMPORARY_RETURN_IGNORED PlatformMgr().ScheduleWork(OpenCommissioning, 0);
     }
 }
 
@@ -276,7 +277,7 @@ void AppTask::ActionCompleted(LightingManager::Action_t aAction)
  */
 void AppTask::UpdateClusterState(void)
 {
-    SystemLayer().ScheduleLambda([] {
+    TEMPORARY_RETURN_IGNORED SystemLayer().ScheduleLambda([] {
         ChipLogProgress(NotSpecified, "UpdateClusterState");
 
         // Write the new on/off value
@@ -307,7 +308,7 @@ static void NextCountdown(void)
     }
     else
     {
-        SystemLayer().ScheduleLambda([] { ConfigurationMgr().InitiateFactoryReset(); });
+        TEMPORARY_RETURN_IGNORED SystemLayer().ScheduleLambda([] { ConfigurationMgr().InitiateFactoryReset(); });
     }
 }
 

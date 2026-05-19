@@ -29,6 +29,11 @@
 #include <data-model-providers/codegen/Instance.h>
 #include <platform/ESP32/NetworkCommissioningDriver.h>
 
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD && CHIP_SYSTEM_CONFIG_USE_OPENTHREAD_ENDPOINT
+#include <inet/EndPointStateOpenThread.h>
+#include <platform/ESP32/ThreadStackManagerImpl.h>
+#endif
+
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD && CONFIG_THREAD_NETWORK_COMMISSIONING_DRIVER
 #include <platform/OpenThread/GenericNetworkCommissioningThreadDriver.h>
 #endif
@@ -50,6 +55,15 @@
 #endif
 #if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_ELECTRICAL_GRID_CONDITIONS_TRIGGER
 #include <app/clusters/electrical-grid-conditions-server/ElectricalGridConditionsTestEventTriggerHandler.h>
+#endif
+#if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_METER_IDENTIFICATION_TRIGGER
+#include <app/clusters/meter-identification-server/MeterIdentificationTestEventTriggerHandler.h>
+#endif
+#if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_COMMODITY_METERING_TRIGGER
+#include <app/clusters/commodity-metering-server/CommodityMeteringTestEventTriggerHandler.h>
+#endif
+#if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_COMMODITY_TARIFF_TRIGGER
+#include <app/clusters/commodity-tariff-server/CommodityTariffTestEventTriggerHandler.h>
 #endif
 
 #ifdef CONFIG_ENABLE_CHIP_SHELL
@@ -193,6 +207,18 @@ void Esp32AppServer::Init(AppDelegate * sAppDelegate)
     static ElectricalGridConditionsTestEventTriggerHandler sElectricalGridConditionsTestEventTriggerHandler;
     sTestEventTriggerDelegate.AddHandler(&sElectricalGridConditionsTestEventTriggerHandler);
 #endif
+#if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_METER_IDENTIFICATION_TRIGGER
+    static MeterIdentificationTestEventTriggerHandler sMeterIdentificationTestEventTriggerHandler;
+    sTestEventTriggerDelegate.AddHandler(&sMeterIdentificationTestEventTriggerHandler);
+#endif
+#if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_COMMODITY_METERING_TRIGGER
+    static CommodityMeteringTestEventTriggerHandler sCommodityMeteringTestEventTriggerHandler;
+    sTestEventTriggerDelegate.AddHandler(&sCommodityMeteringTestEventTriggerHandler);
+#endif
+#if CONFIG_CHIP_DEVICE_CONFIG_ENABLE_COMMODITY_TARIFF_TRIGGER
+    static CommodityTariffTestEventTriggerHandler sCommodityTariffTestEventTriggerHandler;
+    sTestEventTriggerDelegate.AddHandler(&sCommodityTariffTestEventTriggerHandler);
+#endif
 
 #if CONFIG_ENABLE_OTA_REQUESTOR
     static OTATestEventTriggerHandler sOtaTestEventTriggerHandler{};
@@ -206,9 +232,23 @@ void Esp32AppServer::Init(AppDelegate * sAppDelegate)
     {
         initParams.appDelegate = sAppDelegate;
     }
-    chip::Server::GetInstance().Init(initParams);
 
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD && CHIP_SYSTEM_CONFIG_USE_OPENTHREAD_ENDPOINT
     ESPOpenThreadInit();
+
+    static chip::Inet::EndPointStateOpenThread::OpenThreadEndpointInitParam nativeParams;
+    nativeParams.lockCb                = [] { chip::DeviceLayer::ThreadStackMgr().LockThreadStack(); };
+    nativeParams.unlockCb              = [] { chip::DeviceLayer::ThreadStackMgr().UnlockThreadStack(); };
+    nativeParams.openThreadInstancePtr = chip::DeviceLayer::ThreadStackMgrImpl().OTInstance();
+    VerifyOrDie(nativeParams.openThreadInstancePtr != nullptr);
+    initParams.endpointNativeParams = static_cast<void *>(&nativeParams);
+#endif
+
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD && !CHIP_SYSTEM_CONFIG_USE_OPENTHREAD_ENDPOINT
+    ESPOpenThreadInit();
+#endif
+
+    TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().Init(initParams);
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
 #ifdef CONFIG_ENABLE_CHIP_SHELL
@@ -217,15 +257,15 @@ void Esp32AppServer::Init(AppDelegate * sAppDelegate)
 #endif
 
 #if CHIP_DEVICE_CONFIG_WIFI_NETWORK_DRIVER
-    sWiFiNetworkCommissioningInstance.Init();
+    LogErrorOnFailure(sWiFiNetworkCommissioningInstance.Init());
 #endif // CHIP_DEVICE_CONFIG_WIFI_NETWORK_DRIVER
 #if CHIP_DEVICE_CONFIG_ETHERNET_NETWORK_DRIVER
-    sEthernetNetworkCommissioningInstance.Init();
+    LogErrorOnFailure(sEthernetNetworkCommissioningInstance.Init());
 #endif // CHIP_DEVICE_CONFIG_ETHERNET_NETWORK_DRIVER
 
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
 #ifdef CONFIG_THREAD_NETWORK_COMMISSIONING_DRIVER
-    sThreadNetworkDriver.Init();
+    LogErrorOnFailure(sThreadNetworkDriver.Init());
 #endif // CONFIG_THREAD_NETWORK_COMMISSIONING_DRIVER
     if (chip::DeviceLayer::ConnectivityMgr().IsThreadProvisioned() &&
         (chip::Server::GetInstance().GetFabricTable().FabricCount() != 0))

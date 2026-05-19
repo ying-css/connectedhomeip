@@ -18,10 +18,8 @@
 
 #pragma once
 
-#include <app/clusters/closure-dimension-server/closure-dimension-cluster-logic.h>
 #include <app/clusters/closure-dimension-server/closure-dimension-cluster-objects.h>
 #include <app/clusters/closure-dimension-server/closure-dimension-delegate.h>
-#include <app/clusters/closure-dimension-server/closure-dimension-matter-context.h>
 #include <app/clusters/closure-dimension-server/closure-dimension-server.h>
 
 #include <app-common/zap-generated/cluster-objects.h>
@@ -47,35 +45,52 @@ using Protocols::InteractionModel::Status;
 class ClosureDimensionDelegate : public DelegateBase
 {
 public:
-    ClosureDimensionDelegate() {}
+    ClosureDimensionDelegate(EndpointId endpoint) : mEndpoint(endpoint) {}
 
     // Override for the DelegateBase Virtual functions
     Status HandleSetTarget(const Optional<Percent100ths> & pos, const Optional<bool> & latch,
                            const Optional<Globals::ThreeLevelAutoEnum> & speed) override;
     Status HandleStep(const StepDirectionEnum & direction, const uint16_t & numberOfSteps,
                       const Optional<Globals::ThreeLevelAutoEnum> & speed) override;
-    bool IsManualLatchingNeeded() override { return false; }
+
+    /**
+     * @brief Retrieves the endpoint for this instance.
+     *
+     * @return The endpoint (EndpointId) for this instance.
+     */
+    EndpointId GetEndpoint() const { return mEndpoint; }
+
+    /**
+     * @brief Function to get the present target direction for the step command.
+     */
+    StepDirectionEnum GetStepCommandTargetDirection() const { return mStepCommandTargetDirection; }
+
+    /**
+     * @brief Function to save the present target direction of the step command.
+     */
+    void SetStepCommandTargetDirection(StepDirectionEnum direction) { mStepCommandTargetDirection = direction; }
+
+private:
+    EndpointId mEndpoint                          = kInvalidEndpointId;
+    StepDirectionEnum mStepCommandTargetDirection = StepDirectionEnum::kUnknownEnumValue;
 };
 
 /**
  * @class ClosureDimensionEndpoint
  * @brief Represents a Closure Dimension cluster endpoint.
  *
- * This class encapsulates the logic and interfaces required to manage a Closure Dimension cluster endpoint.
- * It integrates the delegate, context, logic, and interface components for the endpoint.
+ * This class encapsulates the interfaces required to manage a Closure Dimension cluster endpoint.
+ * It integrates the delegate, context, and interface components for the endpoint.
  *
  * @param mEndpoint The endpoint ID associated with this Closure Dimension endpoint.
  * @param mContext The Matter context for the endpoint.
  * @param mDelegate The delegate instance for handling commands.
- * @param mLogic The cluster logic associated with the endpoint.
  * @param mInterface The interface for interacting with the cluster.
  */
 class ClosureDimensionEndpoint
 {
 public:
-    ClosureDimensionEndpoint(EndpointId endpoint) :
-        mEndpoint(endpoint), mContext(mEndpoint), mDelegate(), mLogic(mDelegate, mContext), mInterface(mEndpoint, mLogic)
-    {}
+    ClosureDimensionEndpoint(EndpointId endpoint) : mEndpoint(endpoint), mDelegate(mEndpoint), mInterface(mEndpoint, mDelegate) {}
 
     /**
      * @brief Initializes the ClosureDimensionEndpoint instance.
@@ -92,18 +107,18 @@ public:
     ClosureDimensionDelegate & GetDelegate() { return mDelegate; }
 
     /**
-     * @brief Returns a reference to the associated ClusterLogic instance.
+     * @brief Retrieves the cluster instance associated with this Closure Dimension endpoint.
      *
-     * @return ClusterLogic& Reference to the internal ClusterLogic object.
+     * @return Reference to the Interface instance.
      */
-    ClusterLogic & GetLogic() { return mLogic; }
+    Interface & GetClusterInstance() { return mInterface; }
 
     /**
      * @brief Handles the completion of a stop motion action.
      *
      * This function is called when a motion action has been stopped.
-     * It should update the internal state of the closure dimension endpoint to reflect
-     * the completion of the stop motion action.
+     * It updates the internal state of the closure dimension endpoint to reflect the
+     * stopping of the motion action.
      */
     void OnStopMotionActionComplete();
 
@@ -111,8 +126,8 @@ public:
      * @brief Handles the completion of the stop calibration action.
      *
      * This function is called when the calibration action has been stopped.
-     * It should update the internal state of the closure dimension endpoint to reflect
-     * the completion of the stop calibration action.
+     * It updates the internal state of the closure dimension endpoint to reflect the
+     * stopping of the calibration action.
      */
     void OnStopCalibrateActionComplete();
 
@@ -136,12 +151,34 @@ public:
      */
     void OnMoveToActionComplete();
 
+    /**
+     * @brief Handles the completion of a panel motion action for closure Panel endpoint.
+     *
+     * This function is called when a panel motion action has been completed.
+     * It updates the internal state of the closure panel endpoint to reflect
+     * the completion of the panel motion action.
+     */
+    void OnPanelMotionActionComplete();
+
+    /**
+     * @brief Retrieves the endpoint ID associated with this Closure Dimension endpoint.
+     *
+     * @return The EndpointId of this Closure Dimension endpoint.
+     */
+    EndpointId GetEndpointId() const { return mEndpoint; }
+
 private:
     EndpointId mEndpoint = kInvalidEndpointId;
-    MatterContext mContext;
     ClosureDimensionDelegate mDelegate;
-    ClusterLogic mLogic;
     Interface mInterface;
+
+    /**
+     * @brief Updates the current state of the closure dimension endpoint from the target state.
+     *
+     * This function retrieves the target state and updates the current state accordingly.
+     * It ensures that the current state reflects the latest target position, latch status, and speed.
+     */
+    void UpdateCurrentStateFromTargetState();
 };
 
 } // namespace ClosureDimension

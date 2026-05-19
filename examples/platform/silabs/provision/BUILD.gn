@@ -41,16 +41,29 @@ source_set("storage") {
     }
   } else {
     if (use_provision_flash_storage) {
-      libs =
-          [ "${sl_provision_root}/libs/libProvisionFlash_${silabs_family}.a" ]
+      if (is_clang) {
+        libs = [ "${sl_provision_root}/libs/libProvisionFlash-${silabs_family}-clang.a" ]
+      } else {
+        libs =
+            [ "${sl_provision_root}/libs/libProvisionFlash_${silabs_family}.a" ]
+      }
     } else {
-      libs = [ "${sl_provision_root}/libs/libProvision_${silabs_family}.a" ]
+      if (is_clang) {
+        libs = [
+          "${sl_provision_root}/libs/libProvision-${silabs_family}-clang.a",
+        ]
+      } else {
+        libs = [ "${sl_provision_root}/libs/libProvision_${silabs_family}.a" ]
+      }
     }
   }
 
   deps = [ "${chip_root}/src/lib" ]
 
-  public_deps = [ "${sl_provision_root}:headers" ]
+  public_deps = [
+    "${chip_root}/src/app:test-event-trigger",
+    "${sl_provision_root}:headers",
+  ]
 
   if (sl_enable_test_event_trigger) {
     public_configs = [ "${chip_root}/examples/platform/silabs/test-event-trigger:test-event-trigger-config" ]

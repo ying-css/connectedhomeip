@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Project CHIP Authors
+# Copyright (c) 2021-2026 Project CHIP Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -122,6 +122,7 @@ static_library("Darwin") {
     ":tracing",
     "${chip_root}/src/app:app_config",
     "${chip_root}/src/app/common:ids",
+    "${chip_root}/src/app/common:metadata",
     "${chip_root}/src/lib/dnssd:platform_header",
     "${chip_root}/src/platform/logging:headers",
     "${chip_root}/src/setup_payload",
@@ -141,6 +142,7 @@ static_library("Darwin") {
       "../Linux/OTAImageProcessorImpl.cpp",
       "../Linux/OTAImageProcessorImpl.h",
     ]
+    deps += [ "${chip_root}/src/app/clusters/ota-requestor:interface" ]
   }
 
   if (chip_enable_ble) {
@@ -154,6 +156,15 @@ static_library("Darwin") {
       "BleUtils.h",
       "BleUtils.mm",
     ]
+  }
+
+  if (chip_enable_nfc_based_commissioning) {
+    sources += [
+      "NFCCommissioningManagerImpl.cpp",
+      "NFCCommissioningManagerImpl.h",
+    ]
+
+    deps += [ "${chip_root}/src/transport/raw:nfc-application-delegate" ]
   }
 }
 

@@ -24,6 +24,7 @@
 
 using namespace chip;
 using namespace chip::app::Clusters::ClosureControl;
+using namespace chip::app::DataModel;
 
 using Protocols::InteractionModel::Status;
 
@@ -69,25 +70,11 @@ Status ClosureControlDelegate::HandleStopCommand()
     return ClosureManager::GetInstance().OnStopCommand();
 }
 
-CHIP_ERROR ClosureControlDelegate::GetCurrentErrorAtIndex(size_t index, ClosureErrorEnum & closureError)
-{
-    // This function should return the current error at the specified index.
-    // For now, we dont have a ErrorList implemented, so will return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED.
-    return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED;
-}
-
 bool ClosureControlDelegate::IsReadyToMove()
 {
     // This function should return true if the closure is ready to move.
     // For now, we will return true.
     return true;
-}
-
-bool ClosureControlDelegate::IsManualLatchingNeeded()
-{
-    // This function should return true if manual latching is needed.
-    // For now, we will return false.
-    return false;
 }
 
 ElapsedS ClosureControlDelegate::GetCalibrationCountdownTime()
@@ -115,24 +102,31 @@ CHIP_ERROR ClosureControlDelegate::HandleEventTrigger(uint64_t eventTrigger)
 {
     eventTrigger                           = clearEndpointInEventTrigger(eventTrigger);
     ClosureControlTestEventTrigger trigger = static_cast<ClosureControlTestEventTrigger>(eventTrigger);
-    ClusterLogic * logic                   = GetLogic();
+    ClosureControlCluster & cluster        = GetClusterInstance();
 
     switch (trigger)
     {
     case ClosureControlTestEventTrigger::kMainStateIsSetupRequired:
-        return logic->SetMainState(MainStateEnum::kSetupRequired);
+        ReturnErrorOnFailure(cluster.SetMainState(MainStateEnum::kSetupRequired));
+        break;
     case ClosureControlTestEventTrigger::kMainStateIsProtected:
-        return logic->SetMainState(MainStateEnum::kProtected);
+        ReturnErrorOnFailure(cluster.SetMainState(MainStateEnum::kProtected));
+        break;
     case ClosureControlTestEventTrigger::kMainStateIsError:
-        return logic->SetMainState(MainStateEnum::kError);
+        ReturnErrorOnFailure(cluster.SetMainState(MainStateEnum::kError));
+        ReturnErrorOnFailure(cluster.AddErrorToCurrentErrorList(ClosureErrorEnum::kBlockedBySensor));
+        break;
     case ClosureControlTestEventTrigger::kMainStateIsDisengaged:
-        return logic->SetMainState(MainStateEnum::kDisengaged);
+        ReturnErrorOnFailure(cluster.SetMainState(MainStateEnum::kDisengaged));
+        break;
     case ClosureControlTestEventTrigger::kClearEvent:
-        // TODO : Implement logic to clear test event after Test plan Spec issue #5429 is resolved.
-        return CHIP_ERROR_NOT_IMPLEMENTED;
+        ReturnErrorOnFailure(cluster.SetMainState(MainStateEnum::kStopped));
+        cluster.ClearCurrentErrorList();
+        break;
     default:
         return CHIP_ERROR_INVALID_ARGUMENT;
     }
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ClosureControlEndpoint::Init()
@@ -147,41 +141,202 @@ CHIP_ERROR ClosureControlEndpoint::Init()
         .Set(Feature::kCalibration)
         .Set(Feature::kProtection)
         .Set(Feature::kManuallyOperable);
-    conformance.OptionalAttributes().Set(OptionalAttributeEnum::kCountdownTime);
+    conformance.OptionalAttributes().Set<Attributes::CountdownTime::Id>();
 
     ClusterInitParameters initParams;
+    initParams.mLatchControlModes.Set(LatchControlModesBitmap::kRemoteLatching).Set(LatchControlModesBitmap::kRemoteUnlatching);
 
-    ReturnErrorOnFailure(mLogic.Init(conformance, initParams));
-    ReturnErrorOnFailure(mInterface.Init());
+    ReturnErrorOnFailure(mInterface.Init(conformance, initParams));
 
+    mClusterInstance = &mInterface.Cluster();
+    mDelegate.SetClusterInstance(mClusterInstance);
     return CHIP_NO_ERROR;
 }
 
 void ClosureControlEndpoint::OnStopCalibrateActionComplete()
 {
-    // This function should handle closure control state updation after stopping of calibration Action.
+    VerifyOrReturn(mClusterInstance->SetMainState(MainStateEnum::kStopped) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set main state in OnStopCalibrateActionComplete"));
+
+    // After stopping calibration, the overall and target state is explicitly nulled to indicate an unknown state,
+    VerifyOrReturn(mClusterInstance->SetOverallCurrentState(DataModel::NullNullable) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set overall state to null in OnStopCalibrateActionComplete"));
+    VerifyOrReturn(mClusterInstance->SetOverallTargetState(DataModel::NullNullable) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set overall target to null in OnStopCalibrateActionComplete"));
+    VerifyOrReturn(mClusterInstance->SetCountdownTimeFromDelegate(0) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set countdown time to 0 in OnStopCalibrateActionComplete"));
+    VerifyOrReturn(mClusterInstance->GenerateMovementCompletedEvent() == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to generate movement completed event in OnStopCalibrateActionComplete"));
 }
 
 void ClosureControlEndpoint::OnStopMotionActionComplete()
 {
-    // This function should handle closure control state updation after stopping of Motion Action.
+    MainStateEnum presentMainState = mClusterInstance->GetMainState();
+
+    // If the current main state is WaitingForMotion, it means the device hasn't started moving yet,
+    // so we don't need to update the current state.
+    if (presentMainState != MainStateEnum::kWaitingForMotion)
+    {
+        // Set the OverallState position to PartiallyOpened as motion has been stopped
+        // and the closure is not fully closed or fully opened.
+        auto position = MakeOptional(DataModel::MakeNullable(CurrentPositionEnum::kPartiallyOpened));
+
+        DataModel::Nullable<GenericOverallCurrentState> overallCurrentState = mClusterInstance->GetOverallCurrentState();
+
+        if (overallCurrentState.IsNull())
+        {
+            overallCurrentState.SetNonNull(GenericOverallCurrentState(position, NullOptional, NullOptional, false));
+        }
+        else
+        {
+            overallCurrentState.Value().position    = position;
+            overallCurrentState.Value().secureState = false;
+        }
+
+        VerifyOrReturn(mClusterInstance->SetOverallCurrentState(overallCurrentState) == CHIP_NO_ERROR,
+                       ChipLogError(AppServer, "Failed to set overall state in OnStopMotionActionComplete"));
+    }
+
+    VerifyOrReturn(mClusterInstance->SetMainState(MainStateEnum::kStopped) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set main state in OnStopMotionActionComplete"));
+
+    // Set the Position, latch in OverallTargetState to Null and speed to Auto as the motion has been stopped.
+    GenericOverallTargetState overallTargetState(MakeOptional(DataModel::NullNullable), MakeOptional(DataModel::NullNullable),
+                                                 MakeOptional(Globals::ThreeLevelAutoEnum::kAuto));
+    VerifyOrReturn(mClusterInstance->SetOverallTargetState(DataModel::MakeNullable(overallTargetState)) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set overall target in OnStopMotionActionComplete"));
+
+    VerifyOrReturn(mClusterInstance->SetCountdownTimeFromDelegate(0) == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to set countdown time to 0 in OnStopMotionActionComplete"));
+    VerifyOrReturn(mClusterInstance->GenerateMovementCompletedEvent() == CHIP_NO_ERROR,
+                   ChipLogError(AppServer, "Failed to generate movement completed event in OnStopMotionActionComplete"));
 }
 
 void ClosureControlEndpoint::OnCalibrateActionComplete()
 {
-    DataModel::Nullable<GenericOverallState> overallState(GenericOverallState(
-        MakeOptional(DataModel::MakeNullable(PositioningEnum::kFullyClosed)), MakeOptional(DataModel::MakeNullable(true)),
-        MakeOptional(DataModel::MakeNullable(Globals::ThreeLevelAutoEnum::kAuto)), MakeOptional(DataModel::MakeNullable(true))));
-    DataModel::Nullable<GenericOverallTarget> overallTarget = DataModel::NullNullable;
+    DataModel::Nullable<GenericOverallCurrentState> overallCurrentState(GenericOverallCurrentState(
+        MakeOptional(DataModel::MakeNullable(CurrentPositionEnum::kFullyClosed)), MakeOptional(DataModel::MakeNullable(true)),
+        MakeOptional(Globals::ThreeLevelAutoEnum::kAuto), DataModel::MakeNullable(true)));
+    DataModel::Nullable<GenericOverallTargetState> overallTargetState = DataModel::NullNullable;
 
-    mLogic.SetMainState(MainStateEnum::kStopped);
-    mLogic.SetOverallState(overallState);
-    mLogic.SetOverallTarget(overallTarget);
-    mLogic.SetCountdownTimeFromDelegate(0);
-    mLogic.GenerateMovementCompletedEvent();
+    LogErrorOnFailure(mClusterInstance->SetMainState(MainStateEnum::kStopped));
+    LogErrorOnFailure(mClusterInstance->SetOverallCurrentState(overallCurrentState));
+    LogErrorOnFailure(mClusterInstance->SetOverallTargetState(overallTargetState));
+    LogErrorOnFailure(mClusterInstance->SetCountdownTimeFromDelegate(0));
+    LogErrorOnFailure(mClusterInstance->GenerateMovementCompletedEvent());
 }
 
 void ClosureControlEndpoint::OnMoveToActionComplete()
 {
-    // This function should handle closure control state updation after completion of Motion Action.
+    UpdateCurrentStateFromTargetState();
+    LogErrorOnFailure(mClusterInstance->SetMainState(MainStateEnum::kStopped));
+    LogErrorOnFailure(mClusterInstance->SetCountdownTimeFromDelegate(0));
+    LogErrorOnFailure(mClusterInstance->GenerateMovementCompletedEvent());
+}
+
+void ClosureControlEndpoint::UpdateCurrentStateFromTargetState()
+{
+    DataModel::Nullable<GenericOverallCurrentState> overallCurrentState = mClusterInstance->GetOverallCurrentState();
+    DataModel::Nullable<GenericOverallTargetState> overallTargetState   = mClusterInstance->GetOverallTargetState();
+
+    VerifyOrReturn(!overallTargetState.IsNull(), ChipLogError(AppServer, "Current overall target is null, Move to action Failed"));
+    VerifyOrReturn(!overallCurrentState.IsNull(), ChipLogError(AppServer, "Current overall state is null, Move to action Failed"));
+
+    if (overallTargetState.Value().position.HasValue() && !overallTargetState.Value().position.Value().IsNull())
+    {
+        // Map the target position to the current positioning enum.
+        CurrentPositionEnum currentPositioning =
+            MapTargetPositionToCurrentPositioning(overallTargetState.Value().position.Value().Value());
+        overallCurrentState.Value().position.SetValue(MakeNullable(currentPositioning));
+    }
+
+    if (overallTargetState.Value().latch.HasValue() && !overallTargetState.Value().latch.Value().IsNull())
+    {
+        overallCurrentState.Value().latch.SetValue(MakeNullable(overallTargetState.Value().latch.Value().Value()));
+    }
+
+    if (overallTargetState.Value().speed.HasValue())
+    {
+        overallCurrentState.Value().speed.SetValue(overallTargetState.Value().speed.Value());
+    }
+
+    bool isClosureInSecureState = true;
+
+    // First, check if the closure is fully closed and has positioning feature.
+    if (mClusterInstance->GetFeatureMap().Has(Feature::kPositioning))
+    {
+        isClosureInSecureState &= overallCurrentState.Value().position.HasValue() &&
+            !overallCurrentState.Value().position.Value().IsNull() &&
+            overallCurrentState.Value().position.Value().Value() == CurrentPositionEnum::kFullyClosed;
+    }
+
+    // Next, check if motion latching is enabled and latch is true.
+    if (mClusterInstance->GetFeatureMap().Has(Feature::kMotionLatching))
+    {
+        isClosureInSecureState &= overallCurrentState.Value().latch.HasValue() &&
+            !overallCurrentState.Value().latch.Value().IsNull() && overallCurrentState.Value().latch.Value().Value() == true;
+    }
+
+    overallCurrentState.Value().secureState.SetNonNull(isClosureInSecureState);
+
+    LogErrorOnFailure(mClusterInstance->SetOverallCurrentState(overallCurrentState));
+}
+
+CurrentPositionEnum ClosureControlEndpoint::MapTargetPositionToCurrentPositioning(TargetPositionEnum value)
+{
+    switch (value)
+    {
+    case TargetPositionEnum::kMoveToFullyClosed:
+        return CurrentPositionEnum::kFullyClosed;
+    case TargetPositionEnum::kMoveToFullyOpen:
+        return CurrentPositionEnum::kFullyOpened;
+    case TargetPositionEnum::kMoveToPedestrianPosition:
+        return CurrentPositionEnum::kOpenedForPedestrian;
+    case TargetPositionEnum::kMoveToVentilationPosition:
+        return CurrentPositionEnum::kOpenedForVentilation;
+    case TargetPositionEnum::kMoveToSignaturePosition:
+        return CurrentPositionEnum::kOpenedAtSignature;
+    default:
+        return CurrentPositionEnum::kUnknownEnumValue;
+    }
+}
+
+void ClosureControlEndpoint::OnPanelMotionActionComplete()
+{
+    LogErrorOnFailure(mClusterInstance->SetMainState(MainStateEnum::kStopped));
+
+    // Set the OverallState position to PartiallyOpened as motion has been stopped
+    auto position = MakeOptional(DataModel::MakeNullable(CurrentPositionEnum::kPartiallyOpened));
+
+    DataModel::Nullable<GenericOverallCurrentState> overallCurrentState = mClusterInstance->GetOverallCurrentState();
+    DataModel::Nullable<GenericOverallTargetState> overallTargetState   = mClusterInstance->GetOverallTargetState();
+
+    if (overallCurrentState.IsNull())
+    {
+        overallCurrentState.SetNonNull(GenericOverallCurrentState(position, NullOptional, NullOptional, false));
+    }
+    else
+    {
+        overallCurrentState.Value().position    = position;
+        overallCurrentState.Value().secureState = false;
+    }
+
+    // Set latch and speed to their target values if they are set in the overall target.
+    if (!overallTargetState.IsNull())
+    {
+        if (overallTargetState.Value().latch.HasValue() && !overallTargetState.Value().latch.Value().IsNull())
+        {
+            overallCurrentState.Value().latch.SetValue(DataModel::MakeNullable(overallTargetState.Value().latch.Value().Value()));
+        }
+
+        if (overallTargetState.Value().speed.HasValue())
+        {
+            // If the target speed was Auto, we set it to Auto.
+            overallCurrentState.Value().speed.SetValue(overallTargetState.Value().speed.Value());
+        }
+    }
+    LogErrorOnFailure(mClusterInstance->SetOverallCurrentState(overallCurrentState));
+
+    LogErrorOnFailure(mClusterInstance->SetCountdownTimeFromDelegate(0));
+    LogErrorOnFailure(mClusterInstance->GenerateMovementCompletedEvent());
 }

@@ -1,1 +1,1 @@
-145 : [Silabs] Fixing Silabs Docker with latest SDKs
+196 : [crosscompile] Don't duplicate minimization done by create_sysroot.py in the Dockerfile

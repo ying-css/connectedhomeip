@@ -15,8 +15,11 @@
  *    limitations under the License.
  */
 
+#include "CameraAppCommandDelegate.h"
 #include "camera-app.h"
 #include "camera-device.h"
+#include "tls-certificate-management-instance.h"
+#include "tls-client-management-instance.h"
 
 #include <AppMain.h>
 #include <platform/CHIPDeviceConfig.h>
@@ -26,6 +29,11 @@ using namespace chip::app;
 using namespace chip::app::Clusters;
 using namespace Camera;
 
+namespace {
+NamedPipeCommands sChipNamedPipeCommands;
+CameraAppCommandDelegate sCameraAppCommandDelegate;
+} // namespace
+
 CameraDevice gCameraDevice;
 
 void ApplicationInit()
@@ -34,6 +42,11 @@ void ApplicationInit()
     if (LinuxDeviceOptions::GetInstance().cameraVideoDevice.HasValue())
     {
         std::string videoDevicePath = LinuxDeviceOptions::GetInstance().cameraVideoDevice.Value();
+        // If the path does not start with '/', assume it's a device name and prepend /dev/
+        if (!videoDevicePath.empty() && videoDevicePath[0] != '/')
+        {
+            videoDevicePath = "/dev/" + videoDevicePath;
+        }
         ChipLogDetail(Camera, "Using video device path from options: %s", videoDevicePath.c_str());
         gCameraDevice.SetVideoDevicePath(videoDevicePath);
     }
@@ -41,18 +54,39 @@ void ApplicationInit()
     {
         ChipLogDetail(Camera, "Using default video device path: %s", Camera::kDefaultVideoDevicePath);
     }
+
+    std::string appPipePath = std::string(LinuxDeviceOptions::GetInstance().app_pipe);
+    if ((!appPipePath.empty()) && (sChipNamedPipeCommands.Start(appPipePath, &sCameraAppCommandDelegate) != CHIP_NO_ERROR))
+    {
+        ChipLogError(NotSpecified, "Failed to start CHIP NamedPipeCommands");
+        TEMPORARY_RETURN_IGNORED sChipNamedPipeCommands.Stop();
+    }
+
     gCameraDevice.Init();
     CameraAppInit(&gCameraDevice);
+
+    sCameraAppCommandDelegate.SetCameraDevice(&gCameraDevice);
 }
 
 void ApplicationShutdown()
 {
+    // Close WebRTC connections before CameraAppShutdown and PlatformMgr().Shutdown() to ensure WebRTC callbacks (such as
+    // WebRTCProviderManager::OnConnectionStateChanged) can still use the SystemLayer.
+    gCameraDevice.Shutdown();
+
     CameraAppShutdown();
+
+    TEMPORARY_RETURN_IGNORED sChipNamedPipeCommands.Stop();
 }
 
 int main(int argc, char * argv[])
 {
     VerifyOrDie(ChipLinuxAppInit(argc, argv) == 0);
+
+    // Initialize TLS Client and Certificate Management delegates before server starts
+    // This must be called before ChipLinuxAppMainLoop() which initializes the server
+    InitializeTlsClientManagement();
+    InitializeTlsCertificateManagement();
 
     ChipLinuxAppMainLoop();
 
