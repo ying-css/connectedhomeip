@@ -197,10 +197,10 @@ static void InitServer(intptr_t context)
     static chip::CommonCaseDeviceServerInitParams initParams;
     (void) initParams.InitializeStaticResourcesBeforeServerInit();
     initParams.dataModelProvider = CodegenDataModelProviderInstance(initParams.persistentStorageDelegate);
-    TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().Init(initParams);
-
-    gExampleDeviceInfoProvider.SetStorageDelegate(&Server::GetInstance().GetPersistentStorage());
+    gExampleDeviceInfoProvider.SetStorageDelegate(initParams.persistentStorageDelegate);
     chip::DeviceLayer::SetDeviceInfoProvider(&gExampleDeviceInfoProvider);
+
+    TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().Init(initParams);
 
 #if CHIP_DEVICE_CONFIG_ENABLE_OTA_REQUESTOR
     GetAppTask().InitOTARequestor();
