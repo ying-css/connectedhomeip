@@ -54,6 +54,6 @@
 /*
  * Enable trustm for Random Number Generation (DRBG)
  * Disabled: TrustM is registered as an entropy source for the mbedtls CTR-DRBG
- * via add_entropy_source() in PlatformManagerImpl::_InitChipStack(). 
+ * via add_entropy_source() in PlatformManagerImpl::_InitChipStack().
  */
 #define ENABLE_TRUSTM_RANDOM 1
