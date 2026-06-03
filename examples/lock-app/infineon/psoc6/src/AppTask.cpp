@@ -171,7 +171,7 @@ static void InitServer(intptr_t context)
             PSOC6_LOG("DRBG pre-seed failed");
             appError(seed_err);
         }
-        memset(seed_buf, 0, sizeof(seed_buf));
+        chip::Crypto::ClearSecretData(seed_buf, sizeof(seed_buf));
     }
 #endif
 

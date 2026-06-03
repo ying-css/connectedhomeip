@@ -256,7 +256,6 @@ void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t
 
     uint8_t ifx_cert_hex[1024];
     uint16_t ifx_cert_hex_len = sizeof(ifx_cert_hex);
-
     do
     {
         optiga_lib_status = OPTIGA_LIB_BUSY;
@@ -276,9 +275,19 @@ void read_certificate_from_optiga(uint16_t optiga_oid, char * cert_pem, uint16_t
             ChipLogError(Crypto, "read_certificate_from_optiga failed");
             break;
         }
+        if (ifx_cert_hex_len == 0)
+        {
+            ChipLogError(Crypto, "read_certificate_from_optiga: empty certificate");
+            break;
+        }
         // convert to PEM format
         // If the first byte is TLS Identity Tag, than we need to skip 9 first bytes
         offset_to_read = ifx_cert_hex[0] == 0xc0 ? 9 : 0;
+        if (ifx_cert_hex_len < offset_to_read)
+        {
+            ChipLogError(Crypto, "read_certificate_from_optiga: certificate length too short");
+            break;
+        }
         if (mbedtls_base64_encode((unsigned char *) ifx_cert_b64_temp, sizeof(ifx_cert_b64_temp), &ifx_cert_b64_len,
                                   ifx_cert_hex + offset_to_read, ifx_cert_hex_len - offset_to_read) != 0)
         {
@@ -816,6 +825,7 @@ optiga_lib_status_t trustm_ecdh_derive_secret(optiga_key_id_t optiga_key_id, uin
 
 #if !ENABLE_TRUSTM_RANDOM
 #include <mbedtls/entropy.h>
+#include <mbedtls/platform_util.h>
 
 // mbedtls entropy callback: called by CTR-DRBG at seed/reseed time only,
 // not on every DRBG_get_bytes() invocation. Pulls hardware entropy from TrustM.
@@ -842,6 +852,7 @@ int trustm_entropy_source(void * /* data */, unsigned char * output, size_t len,
         optiga_lib_status_t status = optiga_crypt_rng(scratch, chunk);
         if (status != OPTIGA_LIB_SUCCESS)
         {
+            mbedtls_platform_zeroize(scratch, sizeof(scratch));
             return MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
         }
 
