@@ -58,9 +58,9 @@ static bool trustm_isOpen = false;
 
 /* This is a place from which we can poll the status of operation */
 
-void vApplicationTickHook(void);
+extern "C" void vApplicationTickHook(void);
 
-void vApplicationTickHook(void) {}
+extern "C" void vApplicationTickHook(void) {}
 
 #define WAIT_FOR_COMPLETION(ret)                                                                                                   \
     if (OPTIGA_LIB_SUCCESS != ret)                                                                                                 \
@@ -218,29 +218,36 @@ void trustm_close(void)
          * Close the application on OPTIGA after all the operations are executed
          * using optiga_util_close_application
          */
-        optiga_lib_status = OPTIGA_LIB_BUSY;
-        return_status     = optiga_util_close_application(me_util, 0);
-        if (OPTIGA_LIB_SUCCESS != return_status)
+        if (me_util != NULL)
         {
-            ChipLogError(Crypto, "optiga_util_close_application api returns error %02X", return_status);
-            break;
+            optiga_lib_status = OPTIGA_LIB_BUSY;
+            return_status     = optiga_util_close_application(me_util, 0);
+            if (OPTIGA_LIB_SUCCESS != return_status)
+            {
+                ChipLogError(Crypto, "optiga_util_close_application api returns error %02X", return_status);
+                break;
+            }
+
+            WAIT_FOR_COMPLETION(return_status);
+
+            if (OPTIGA_LIB_SUCCESS != return_status)
+            {
+                // optiga_util_close_application failed
+                ChipLogError(Crypto, "optiga_util_close_application failed");
+                break;
+            }
+
+            optiga_util_destroy(me_util);
+            me_util = NULL;
         }
 
-        WAIT_FOR_COMPLETION(return_status);
-
-        if (OPTIGA_LIB_SUCCESS != return_status)
+        if (me_crypt != NULL)
         {
-            // optiga_util_close_application failed
-            ChipLogError(Crypto, "optiga_util_close_application failed");
-            break;
+            optiga_crypt_destroy(me_crypt);
+            me_crypt = NULL;
         }
 
-        // destroy util and crypt instances
-        optiga_util_destroy(me_util);
-        optiga_crypt_destroy(me_crypt);
         pal_os_event_destroy(NULL);
-        me_util       = NULL;
-        me_crypt      = NULL;
         trustm_isOpen = false;
         return_status = OPTIGA_LIB_SUCCESS;
     } while (0);
@@ -747,6 +754,9 @@ CHIP_ERROR trustmGetCertificate(uint16_t optiga_oid, uint8_t * buf, uint16_t * b
     VerifyOrReturnError(buf != nullptr, CHIP_ERROR_INTERNAL);
     VerifyOrReturnError(buflen != nullptr, CHIP_ERROR_INTERNAL);
 
+    const uint16_t buffer_capacity = *buflen;
+    VerifyOrReturnError(buffer_capacity > 0, CHIP_ERROR_BUFFER_TOO_SMALL);
+
     uint8_t ifx_cert_hex[1024];
     uint16_t ifx_cert_hex_len = sizeof(ifx_cert_hex);
 
@@ -774,6 +784,12 @@ CHIP_ERROR trustmGetCertificate(uint16_t optiga_oid, uint8_t * buf, uint16_t * b
         {
             ChipLogError(Crypto, "trustmGetCertificate failed");
             break;
+        }
+        if (ifx_cert_hex_len > buffer_capacity)
+        {
+            ChipLogError(Crypto, "trustmGetCertificate: buffer too small (have %u, need %u)", buffer_capacity,
+                         ifx_cert_hex_len);
+            return CHIP_ERROR_BUFFER_TOO_SMALL;
         }
         memcpy(buf, ifx_cert_hex, ifx_cert_hex_len);
         *buflen = ifx_cert_hex_len;

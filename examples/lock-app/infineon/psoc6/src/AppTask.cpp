@@ -50,6 +50,8 @@
 #include <DeviceAttestationCredsExampleTrustM.h>
 #endif
 
+#include <CHIPCryptoPALHsm_config_trustm.h>
+
 #if !ENABLE_TRUSTM_RANDOM
 #include <crypto/CHIPCryptoPAL.h>
 #endif
